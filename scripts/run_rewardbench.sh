@@ -1,5 +1,9 @@
 #!/bin/bash
 
+export TRANSFORMERS_CACHE="./cache/"
+export CUDA_DEVICE_ORDER="PCI_BUS_ID"
+export NCCL_P2P_DISABLE=1
+
 # Function to display usage information
 usage() {
   echo "Usage: $0 [DATASET] [SPLIT] [OUTDIR]"
