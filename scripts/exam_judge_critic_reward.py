@@ -93,13 +93,30 @@ class JudgeModel:
         logger.info(f"Loaded JudgeModel: {model_name}")
 
     def evaluate_pairwise(self, prompt, response_a, response_b):
-        prompt_combined = self.system_prompt.format(prompt=prompt, response_a=response_a, response_b=response_b)
-        inputs = self.tokenizer(prompt_combined, return_tensors="pt", truncation=True, padding=True, max_length=1024)
-        inputs = {key: value.to(self.device) for key, value in inputs.items()}
+        # Swap responses to mitigate position bias
+        prompt_combined_1 = self.system_prompt.format(prompt=prompt, response_a=response_a, response_b=response_b)
+        prompt_combined_2 = self.system_prompt.format(prompt=prompt, response_a=response_b, response_b=response_a)
+        
+        inputs_1 = self.tokenizer(prompt_combined_1, return_tensors="pt", truncation=True, padding=True, max_length=1024)
+        inputs_2 = self.tokenizer(prompt_combined_2, return_tensors="pt", truncation=True, padding=True, max_length=1024)
+        
+        inputs_1 = {key: value.to(self.device) for key, value in inputs_1.items()}
+        inputs_2 = {key: value.to(self.device) for key, value in inputs_2.items()}
+        
         with torch.no_grad():
-            outputs = self.model.generate(**inputs, max_new_tokens=100)
-        judgment = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-        return self.parse_judgment(judgment)
+            outputs_1 = self.model.generate(**inputs_1, max_new_tokens=100)
+            outputs_2 = self.model.generate(**inputs_2, max_new_tokens=100)
+        
+        judgment_1 = self.tokenizer.decode(outputs_1[0], skip_special_tokens=True)
+        judgment_2 = self.tokenizer.decode(outputs_2[0], skip_special_tokens=True)
+        
+        result_1 = self.parse_judgment(judgment_1)
+        result_2 = self.parse_judgment(judgment_2)
+        
+        if result_1 == result_2:
+            return result_1
+        else:
+            return "tie"
 
     def parse_judgment(self, judgment):
         if "[[A]]" in judgment:
@@ -108,6 +125,24 @@ class JudgeModel:
             return "B"
         else:
             return "error"
+
+    def evaluate_single(self, prompt, response):
+        combined_prompt = f"{self.system_prompt}\n{prompt}\n{response}"
+        inputs = self.tokenizer(combined_prompt, return_tensors="pt", truncation=True, padding=True, max_length=1024)
+        inputs = {key: value.to(self.device) for key, value in inputs.items()}
+        with torch.no_grad():
+            outputs = self.model.generate(**inputs, max_new_tokens=100)
+        evaluation = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return evaluation
+
+    def evaluate_with_reference(self, prompt, response, reference):
+        combined_prompt = f"{self.system_prompt}\n{prompt}\nReference answer:\n{reference}\nResponse:\n{response}"
+        inputs = self.tokenizer(combined_prompt, return_tensors="pt", truncation=True, padding=True, max_length=1024)
+        inputs = {key: value.to(self.device) for key, value in inputs.items()}
+        with torch.no_grad():
+            outputs = self.model.generate(**inputs, max_new_tokens=100)
+        evaluation = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return evaluation
 
 class CriticModel:
     def __init__(self, model_name, reward_model_name, system_prompt, length_modifier=0.1):
