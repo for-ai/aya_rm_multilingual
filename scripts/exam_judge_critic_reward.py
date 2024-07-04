@@ -50,35 +50,7 @@ class RewardModel:
         score = scores.max().item()
         logger.info("Evaluated response")
         return score
-'''
-class JudgeModel:
-    def __init__(self, model_name):
-        try:
-            self.model = AutoModelForSequenceClassification.from_pretrained(model_name)
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            self.model.to(self.device)
-            if self.tokenizer.pad_token is None:
-                self.tokenizer.pad_token = self.tokenizer.eos_token 
-            logger.info(f"Loaded JudgeModel: {model_name}")
-        except Exception as e:
-            logger.error(f"Failed to load JudgeModel: {model_name}", exc_info=True)
-            raise e
 
-    def evaluate_response(self, prompt, response):
-        try:
-            inputs = self.tokenizer(prompt + response, return_tensors="pt", truncation=True, padding=True, max_length=512)
-            inputs = {key: value.to(self.device) for key, value in inputs.items()}
-            with torch.no_grad():
-                outputs = self.model(**inputs)
-            scores = torch.softmax(outputs.logits, dim=-1)[0]
-            score = scores.max().item()  # Use max score as the reward
-            logger.info("Evaluated response")
-            return score
-        except Exception as e:
-            logger.error("Error evaluating response", exc_info=True)
-            raise e
-'''
 class JudgeModel:
     def __init__(self, model_name):
         try:
@@ -232,46 +204,7 @@ def load_tokenized_shards(data_path):
         logger.warning("No data loaded")
 
     return dataset
-'''
-def run_pipeline(model_name, reward_model_name, judge_model_name, critic_model_name, data_path, batch_size=8):
-    try:
-        logger.info("Loading dataset...")
-        dataset = load_tokenized_shards(data_path)
-        logger.info("Dataset loaded successfully.")
 
-        logger.info("Loading models...")
-        exam_taker = ExamTaker(model_name)
-        reward_model = RewardModel(reward_model_name)
-        judge_model = JudgeModel(judge_model_name) if judge_model_name else None
-        critic_model = CriticModel(critic_model_name, reward_model_name) if critic_model_name else None
-        logger.info("Models loaded successfully.")
-
-        for example in dataset['test']:
-            prompt = example['prompt'][:512]  # Limit prompt length for exam_taker 
-            chosen = example['chosen'][0]['content'][:512]  # Limit chosen response for evaluation
-
-            logger.info(f"Processing example with prompt: {prompt}")
-            generated_response = exam_taker.generate_response(prompt)
-            reward_score = reward_model.evaluate_response(prompt, generated_response)
-
-            logger.info(f"Prompt: {prompt}")
-            logger.info(f"Chosen: {chosen}")
-            logger.info(f"Generated Response: {generated_response}")
-            logger.info(f"Reward Score: {reward_score}")
-
-            if judge_model:
-                judge_score = judge_model.evaluate_response(prompt, generated_response)
-                logger.info(f"Judge Score: {judge_score}")
-
-            if critic_model:
-                critique = critic_model.generate_critique(generated_response)
-                logger.info(f"Critique: {critique}")
-                # Compare reward scores before and after critique (if desired)
-
-    except Exception as e:
-        logger.error("Error running pipeline", exc_info=True)
-        raise e
-'''
 def run_pipeline(model_name, reward_model_name, judge_model_name, critic_model_name, data_path, batch_size=8):
     try:
         logger.info("Loading dataset...")
