@@ -50,7 +50,7 @@ class RewardModel:
         score = scores.max().item()
         logger.info("Evaluated response")
         return score
-
+'''
 class JudgeModel:
     def __init__(self, model_name):
         try:
@@ -78,6 +78,50 @@ class JudgeModel:
         except Exception as e:
             logger.error("Error evaluating response", exc_info=True)
             raise e
+'''
+class JudgeModel:
+    def __init__(self, model_name):
+        try:
+            self.model = AutoModelForSequenceClassification.from_pretrained(model_name)
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.model.to(self.device)
+            if self.tokenizer.pad_token is None:
+                self.tokenizer.pad_token = self.tokenizer.eos_token 
+            logger.info(f"Loaded JudgeModel: {model_name}")
+        except Exception as e:
+            logger.error(f"Failed to load JudgeModel: {model_name}", exc_info=True)
+            raise e
+
+    def evaluate_pairwise(self, prompt, response_a, response_b):
+        try:
+            # Prepare inputs for the pairwise comparison
+            prompt_combined = f"Prompt: {prompt}\nResponse A: {response_a}\nResponse B: {response_b}\nWhich response is better?"
+            inputs = self.tokenizer(prompt_combined, return_tensors="pt", truncation=True, padding=True, max_length=1024)
+            inputs = {key: value.to(self.device) for key, value in inputs.items()}
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+            scores = torch.softmax(outputs.logits, dim=-1)[0]
+            logger.info("Evaluated pairwise responses")
+            return scores  # Return the scores to determine the better response
+        except Exception as e:
+            logger.error("Error evaluating pairwise responses", exc_info=True)
+            raise e
+
+    def evaluate_single(self, prompt, response):
+        try:
+            inputs = self.tokenizer(f"Prompt: {prompt}\nResponse: {response}\nScore the response.", return_tensors="pt", truncation=True, padding=True, max_length=1024)
+            inputs = {key: value.to(self.device) for key, value in inputs.items()}
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+            scores = torch.softmax(outputs.logits, dim=-1)[0]
+            score = scores.max().item()
+            logger.info("Evaluated single response")
+            return score
+        except Exception as e:
+            logger.error("Error evaluating single response", exc_info=True)
+            raise e
+
 
 class CriticModel:
     def __init__(self, model_name, reward_model_name, length_modifier=0.1):
@@ -188,7 +232,7 @@ def load_tokenized_shards(data_path):
         logger.warning("No data loaded")
 
     return dataset
-
+'''
 def run_pipeline(model_name, reward_model_name, judge_model_name, critic_model_name, data_path, batch_size=8):
     try:
         logger.info("Loading dataset...")
@@ -227,10 +271,54 @@ def run_pipeline(model_name, reward_model_name, judge_model_name, critic_model_n
     except Exception as e:
         logger.error("Error running pipeline", exc_info=True)
         raise e
+'''
+def run_pipeline(model_name, reward_model_name, judge_model_name, critic_model_name, data_path, batch_size=8):
+    try:
+        logger.info("Loading dataset...")
+        dataset = load_tokenized_shards(data_path)
+        logger.info("Dataset loaded successfully.")
+
+        logger.info("Loading models...")
+        exam_taker = ExamTaker(model_name)
+        reward_model = RewardModel(reward_model_name)
+        judge_model = JudgeModel(judge_model_name) if judge_model_name else None
+        critic_model = CriticModel(critic_model_name, reward_model_name) if critic_model_name else None
+        logger.info("Models loaded successfully.")
+
+        for example in dataset['test']:
+            prompt = example['prompt'][:512]  # Limit prompt length for exam_taker 
+            chosen = example['chosen'][0]['content'][:512]  # Limit chosen response for evaluation
+
+            logger.info(f"Processing example with prompt: {prompt}")
+            generated_response = exam_taker.generate_response(prompt)
+            reward_score = reward_model.evaluate_response(prompt, generated_response)
+
+            logger.info(f"Prompt: {prompt}")
+            logger.info(f"Chosen: {chosen}")
+            logger.info(f"Generated Response: {generated_response}")
+            logger.info(f"Reward Score: {reward_score}")
+
+            if judge_model:
+                # Example usage of pairwise evaluation
+                judge_scores = judge_model.evaluate_pairwise(prompt, chosen, generated_response)
+                logger.info(f"Judge Scores: {judge_scores}")
+
+                # Example usage of single evaluation
+                judge_score = judge_model.evaluate_single(prompt, generated_response)
+                logger.info(f"Judge Single Score: {judge_score}")
+
+            if critic_model:
+                critique = critic_model.generate_critique(generated_response)
+                logger.info(f"Critique: {critique}")
+                # Compare reward scores before and after critique (if desired)
+
+    except Exception as e:
+        logger.error("Error running pipeline", exc_info=True)
+        raise e
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run a smaller pipeline for model and reward model testing.")
-    parser.add_argument("--data_path", type=str, default="/home/rpasquale/multi_lingual/tokenized_shards", help="Path to the tokenized shards")
+    parser.add_argument("--data_path", type=str, default="tokenized_shards", help="Path to the tokenized shards")
     parser.add_argument("--batch_size", type=int, default=8, help="Batch size for evaluation")
     parser.add_argument("--judge_model", type=str, help="Name of the judge model to use (optional)")
     parser.add_argument("--critic_model", type=str, help="Name of the critic model to use (optional)")  # Add critic model argument
@@ -243,5 +331,3 @@ if __name__ == "__main__":
     critic_model_name = args.critic_model if args.critic_model else None
 
     run_pipeline(model_name, reward_model_name, judge_model_name, critic_model_name, args.data_path, args.batch_size)
-
-
