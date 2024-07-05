@@ -14,7 +14,7 @@ usage() {
 }
 
 # Default values for arguments
-DATASET="ljvmiranda921/multilingual-ultrafeedback-dpi-v0.1-test"
+DATASET="ljvmiranda921/ultrafeedback-multilingual-dpo-test"
 SPLIT="test"
 OUTDIR="output/"
 
