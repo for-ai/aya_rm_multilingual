@@ -25,6 +25,7 @@ def get_args():
     # fmt: off
     parser.add_argument("--dataset", type=str, default="nthakur/multilingual-ultrafeedback-dpo-v0.1", help="Dataset to convert.")
     parser.add_argument("--output_path", type=Path, default="data/multilingual-ultrafeedback-dpo-v0.1.json", help="Path to save converted dataset as JSON file.")
+    parser.add_argument("--en", action="store_true", help="Use the english columns.")
     # fmt: on
 
     return parser.parse_args()
@@ -48,8 +49,20 @@ def main():
         ]
         return example
 
-    cols = ["id", "source", "language", "input", "chosen", "rejected"]
-    rename_map = {"input": "prompt", "chosen": "chosen_raw", "rejected": "rejected_raw"}
+    prefix = "en_" if args.en else ""
+    cols = [
+        "id",
+        "source",
+        "language",
+        f"{prefix}input",
+        f"{prefix}chosen",
+        f"{prefix}rejected",
+    ]
+    rename_map = {
+        f"{prefix}input": "prompt",
+        f"{prefix}chosen": "chosen_raw",
+        f"{prefix}rejected": "rejected_raw",
+    }
     dataset = (
         dataset.select_columns(cols)
         .rename_columns(rename_map)
