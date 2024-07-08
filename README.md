@@ -22,8 +22,8 @@ Note that the [`rewardbench`](https://pypi.org/project/rewardbench/) package req
 
 You can find all runnable experiments in the `scripts` directory.
 Their filename should explicitly tell you their purpose. 
-For example, `scripts/run_rewardbench.sh` runs the RewardBench inference pipeline on a select number of models given a dataset:
+For example, `scripts/run_rm_evals.sh` runs the RewardBench inference pipeline on a select number of models given a dataset:
 
 ```sh
-./scripts/run_rewardbench.sh
+./scripts/run_rm_evals.sh
 ```
