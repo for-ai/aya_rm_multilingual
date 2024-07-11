@@ -284,7 +284,7 @@ def main():
         dataset_prompts = dataset.map(
             format_judgements, fn_kwargs={"optional_chat_template": chat_template}
         )
-.json
+
         prompts = dataset_prompts["text"]
         is_shuffled = dataset_prompts["is_shuffled"]
 
