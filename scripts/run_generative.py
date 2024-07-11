@@ -152,6 +152,8 @@ def main():
         dataset = dataset.select(range(args.sample))
 
     if is_api_models:
+        logging.info("Found an API model, will run inference through their API")
+
         ############################
         # Run inference via API
         ############################
@@ -235,6 +237,7 @@ def main():
         ############################
         # Run model weights with vllm
         ############################
+        logging.info("Not an API model, will run model weights via vLLM")
 
         def format_judgements(batch, optional_chat_template=None):
             # TODO expand this to include fastchat chat templates if needed
