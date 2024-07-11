@@ -20,6 +20,21 @@ Note that the [`rewardbench`](https://pypi.org/project/rewardbench/) package req
 
 ## Running experiments
 
+First, you need to set a [HuggingFace token](https://huggingface.co/settings/tokens) as an environment variable (`HF_TOKEN`):
+
+```sh
+export HF_TOKEN=<your huggingface token>
+```
+
+If you're planning to use some closed-source APIs, you also need to set the tokens for each:
+
+
+```sh
+export OPENAI_API_KEY=<your openai token>
+export ANTHROPIC_API_KEY=<your anthropic token>
+export GEMINI_API_KEY=<your gemini token>
+```
+
 You can find all runnable experiments in the `scripts` directory.
 Their filename should explicitly tell you their purpose. 
 For example, `scripts/run_rm_evals.sh` runs the RewardBench inference pipeline on a select number of models given a dataset:
