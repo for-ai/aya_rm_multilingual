@@ -21,6 +21,7 @@ Updated to accommodate custom preference datasets
 # Examples:
 # python scripts/run_generative.py --dataset_name <DATASET_NAME> --model gpt-3.5-turbo
 # python scripts/run_generative.py --dataset_name <DATASET_NAME> --model=claude-3-haiku-20240307
+# python scripts/run_generative.py --dataset_name <DATASET_NAME> --model=CohereForAI/c4ai-command-r-v01 --num_gpus 2 --force_local
 
 # note: for none API models, this script uses vllm
 # pip install vllm
@@ -31,6 +32,7 @@ import logging
 import os
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 
 import numpy as np
 from datasets import load_dataset
@@ -57,6 +59,7 @@ def get_args():
     parser.add_argument("--dataset_name", type=str, required=True, help="name of dataset to test on")
     parser.add_argument("--split", default="test", type=str, required=True, help="dataset split to evaluate")
     parser.add_argument("--model", type=str, nargs="+", required=True, help="name of model to use")
+    parser.add_argument("--output_dir", type=str, required=True, help="Directory to save the results.")
     parser.add_argument("--chat_template", type=str, default=None, help="fastchat chat template (optional)")
     parser.add_argument("--trust_remote_code", action="store_true", default=False, help="directly load model instead of pipeline")
     parser.add_argument("--num_gpus", type=int, default=1, help="number of gpus to use, for multi-node vllm")
@@ -352,7 +355,8 @@ def main():
         },
     }
 
-    file_path = f"{model_name.replace('/', '___')}.json"
+    output_dir = Path(args.output_dir)
+    file_path = output_dir / f"{model_name.replace('/', '___')}.json"
     with open(file_path, "w") as f:
         json.dump(results_dict, f, indent=4)
 
