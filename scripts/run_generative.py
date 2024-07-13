@@ -26,8 +26,8 @@ Updated to accommodate custom preference datasets
 # pip install vllm
 
 import argparse
-import logging
 import json
+import logging
 import os
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
