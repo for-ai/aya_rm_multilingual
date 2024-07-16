@@ -91,3 +91,28 @@ python -m scripts/run_generative.py \
     --num_gpus 4 \
     --output_dir $OUTDIR
 ```
+
+### Getting rewards from a Generative Model on a HuggingFace dataset using VLLM OpenAI Server
+
+Install the RewardBench patch.
+
+```sh
+pip install -e m-reward-bench
+```
+
+The inference can be run with any model hosted in a VLLM OpenAI Server. For example: here we run on the `ljvmiranda921/multilingual-ultrafeedback-dpi-v0.1-test` dataset. Please replace `<VLLM_OPENAI_MODEL_NAME>`, `<VLLM_OPENAI_BASE_URL>` and `<VLLM_OPENAI_API_KEY>` as per the VLLM OpenAI Server deployment.
+
+```sh
+mkdir ./data
+
+rewardbench-gen \
+    --dataset ljvmiranda921/multilingual-ultrafeedback-dpi-v0.1-test \
+    --split test --sample 10 \
+    --model <VLLM_OPENAI_MODEL_NAME> \
+    --vllm_openai_base_url <VLLM_OPENAI_BASE_URL> \
+    --vllm_openai_api_key <VLLM_OPENAI_API_KEY> \
+    --disable_beaker_save \
+    --output_dir ./data
+```
+
+

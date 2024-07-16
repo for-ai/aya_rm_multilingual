@@ -1,0 +1,4 @@
+[flake8]
+exclude = 
+    rewardbench/models/openassistant.py
+extend-ignore = E203
