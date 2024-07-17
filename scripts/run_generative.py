@@ -37,12 +37,13 @@ from pathlib import Path
 import numpy as np
 from datasets import load_dataset
 from fastchat.conversation import get_conv_template
-from rewardbench.generative import ANTHROPIC_MODEL_LIST, API_MODEL_LIST
-from rewardbench.generative import GEMINI_MODEL_LIST, OPENAI_MODEL_LIST
-from rewardbench.generative import format_judge_answers, process_judgement
-from rewardbench.generative import run_judge_pair
 from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
+
+from scripts.generative import ANTHROPIC_MODEL_LIST, API_MODEL_LIST
+from scripts.generative import GEMINI_MODEL_LIST, OPENAI_MODEL_LIST
+from scripts.generative import format_judge_answers, process_judgement
+from scripts.generative import run_judge_pair
 
 # get token from HF_TOKEN env variable, but if it doesn't exist pass none
 HF_TOKEN = os.getenv("HF_TOKEN", None)
