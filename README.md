@@ -51,7 +51,7 @@ rewardbench \
 The evaluation parameters can be found in the [allenai/reward-bench](https://github.com/allenai/reward-bench/blob/main/scripts/configs/eval_configs.yaml) repository.
 This runs the reward model on the (prompt, chosen, rejected) triples and give us the reward score for each instance.
 The results are saved into a JSON file inside the `$OUTDIR` directory.
-Finally, you can find some experiments in the `scripts/run_rm_evals.sh` script.
+Finally, you can find some experiments in the `experiments/run_rm_evals.sh` script.
 
 ### Getting rewards from a Generative RM on a HuggingFace dataset
 
