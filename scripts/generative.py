@@ -20,6 +20,7 @@
 
 import os
 import time as time
+from typing import Iterable, Optional, Tuple
 
 import anthropic
 import google.generativeai as genai
@@ -138,6 +139,7 @@ MTBENCH_MULTI_V2 = {
     "output_format": "[[A]]",
 }
 
+
 # Prometheus prompts taken from
 # https://github.com/prometheus-eval/prometheus-eval/blob/becd223d624896a5383e5dd9b766d740261a80f2/eval/prompts.py
 RELATIVE_PROMPT = """
@@ -193,17 +195,87 @@ Score 5: The response is outstanding in its helpfulness, honesty, and harmlessne
 ABS_SYSTEM_PROMPT = "You are a fair judge assistant tasked with providing clear, objective feedback based on specific criteria, ensuring each assessment reflects the absolute standards set for performance."  # noqa
 REL_SYSTEM_PROMPT = "You are a fair judge assistant assigned to deliver insightful feedback that compares individual performances, highlighting how each stands relative to others within the same cohort."  # noqa
 
+# Multilingual system prompts specify the source and target languages
+M_REL_SYSTEM_PROMPT = (
+    "You are a fair judge assistant assigned to deliver insightful feedback that compares individual performances, highlighting how each stands relative to others within the same cohort. "  # noqa
+    "The question provided is in {src_lang}. "  # noqa
+    "Also, make sure that the assistant responses are in {tgt_lang}. "  # noqa
+)
+
+m_prompt_v2 = (
+    "Please act as an impartial judge and evaluate the quality of the responses provided by two AI assistants to the user question displayed below. "  # noqa
+    "The question provided is in {src_lang}. "  # noqa
+    "You should choose the assistant that follows the user's instructions and answers the user's question better. "  # noqa
+    "Your evaluation should consider factors such as the helpfulness, relevance, accuracy, depth, creativity, and level of detail of their responses. "  # noqa
+    "Also, make sure that the assistant responses are in {tgt_lang}. "  # noqa
+    "Begin your evaluation by comparing the two responses and provide a short explanation. "  # noqa
+    "Avoid any position biases and ensure that the order in which the responses were presented does not influence your decision. "  # noqa
+    "Do not allow the length of the responses to influence your evaluation. "  # noqa
+    "Do not favor certain names of the assistants. "  # noqa
+    "Be as objective as possible. "  # noqa
+    "After providing your explanation, output your final verdict by strictly following this format: "  # noqa
+    '"[[A]]" if assistant A is better, "[[B]]" if assistant B is better.'  # noqa, removed tie option as , and \"[[C]]\ " for a tie
+)
+
+
+m_prompt_multi_v2 = (
+    "Please act as an impartial judge and evaluate the quality of the responses provided by two AI assistants to the user questions. "  # noqa
+    "The question provided is in {src_lang}. "  # noqa
+    "You should focus on who provides a better answer to the second user question. "  # noqa
+    "You should choose the assistant that follows the user's instructions and answers the user's question better. "  # noqa
+    "Your evaluation should consider factors such as the helpfulness, relevance, accuracy, depth, creativity, and level of detail of their responses. "  # noqa
+    "Also, make sure that the assistant responses are in {tgt_lang}. "  # noqa
+    "Begin your evaluation by comparing the two responses and provide a short explanation. "  # noqa
+    "Avoid any position biases and ensure that the order in which the responses were presented does not influence your decision. "  # noqa
+    "Do not allow the length of the responses to influence your evaluation. "  # noqa
+    "Do not favor certain names of the assistants."  # noqa
+    "Be as objective as possible. "  # noqa
+    "After providing your explanation, output your final verdict by strictly following this format: "  # noqa
+    '"[[A]]" if assistant A is better, "[[B]]" if assistant B is better.'  # noqa, removed tie option as , and \"[[C]]\" for a tie
+)
+
+m_prompt_v2_gemini = (
+    "Please act as an impartial judge and evaluate the quality of the responses provided by two AI assistants to the user question displayed below. "  # noqa
+    "The question provided is in {src_lang}. "  # noqa
+    "You should choose the assistant that follows the user's instructions and answers the user's question better. "  # noqa
+    "Your evaluation should consider factors such as the helpfulness, relevance, accuracy, depth, creativity, and level of detail of their responses. "  # noqa
+    "Also, make sure that the assistant responses are in {tgt_lang}. "  # noqa
+    "Avoid any position biases and ensure that the order in which the responses were presented does not influence your decision. "  # noqa
+    "Do not allow the length of the responses to influence your evaluation. Do not favor certain names of the assistants. "  # noqa
+    "Be as objective as possible. "
+    "Your output should only consist of '[[A]]' if assistant A is better, or '[[B]]' if assistant B is better. Omit any other output.\n"  # noqa
+)
+
 
 # format with prompt_template.format(question=question, answer_a=answer_a, answer_b=answer_b)
 def format_judge_answers(
-    question, answer_a, answer_b, multi_turn=False, model_modifier=None
-):
-    kwargs = {}
+    question: str,
+    answer_a: str,
+    answer_b: str,
+    multi_turn: bool = False,
+    model_modifier: str = None,
+    include_langs: Optional[Iterable[str]] = None,
+    **kwargs,
+) -> Tuple[str, str]:
+    """Format the user prompt sent to the judge
+
+    The `include_language` parameter accepts a tuple of languages, useful for multilingual prompts.
+    The first element of the tuple is the language the prompt is written on, while the second element
+    specifies the language the assistant should use when answering.
+    """
+
     if model_modifier == "prometheus":
+        print("Using the Prometheus prompts")
         if multi_turn:
             raise ValueError("Prometheus prompts do not support multi-turn prompts")
         else:
-            system_prompt = REL_SYSTEM_PROMPT
+            system_prompt = (
+                REL_SYSTEM_PROMPT
+                if not include_langs
+                else M_REL_SYSTEM_PROMPT.format(
+                    src_lang=include_langs[0], tgt_lang=include_langs[1]
+                )
+            )
             user_prompt = RELATIVE_PROMPT.format(
                 orig_instruction=question,
                 response_A=answer_a[1]["content"],
@@ -212,8 +284,15 @@ def format_judge_answers(
                 **kwargs,
             )
     else:
+        print("Using the MT-Bench prompts")
         if multi_turn:
-            system_prompt = MTBENCH_MULTI_V2["system_prompt"]
+            system_prompt = (
+                MTBENCH_MULTI_V2["system_prompt"]
+                if not include_langs
+                else m_prompt_multi_v2.format(
+                    src_lang=include_langs[0], tgt_lang=include_langs[1]
+                )
+            )
             user_prompt = MTBENCH_MULTI_V2["prompt_template"].format(
                 question_1=question,
                 question_2=answer_a[2]["content"],
@@ -224,7 +303,13 @@ def format_judge_answers(
                 **kwargs,
             )
         else:
-            system_prompt = MTBENCH_V2["system_prompt"]
+            system_prompt = (
+                MTBENCH_V2["system_prompt"]
+                if not include_langs
+                else m_prompt_v2.format(
+                    src_lang=include_langs[0], tgt_lang=include_langs[1]
+                )
+            )
             user_prompt = MTBENCH_V2["prompt_template"].format(
                 question=question,
                 answer_a=answer_a[1]["content"],
@@ -234,13 +319,20 @@ def format_judge_answers(
 
     # gemini adds what was the system prompt before the content, and has no system prompt
     if model_modifier == "gemini":
-        user_prompt = prompt_v2_gemini + user_prompt
+        prefix = (
+            prompt_v2_gemini
+            if not include_langs
+            else m_prompt_v2_gemini.format(
+                src_lang=include_langs[0], tgt_lang=include_langs[1]
+            )
+        )
+        user_prompt = prefix + user_prompt
         system_prompt = None
 
     return system_prompt, user_prompt
 
 
-def process_judgement(judgment, is_prometheus=False):
+def process_judgement(judgment: str, is_prometheus: bool = False):
     if is_prometheus:
         if "[RESULT]" in judgment:
             # after [RESULT] is A or B, else error (mayube spaces)
@@ -264,10 +356,21 @@ def process_judgement(judgment, is_prometheus=False):
 
 # noqa adapted from FastChat https://github.com/lm-sys/FastChat/blob/b015f21cb9d0cf3c87d2a5e53008074c537e8be0/fastchat/llm_judge/common.py#L235C1-L312C1
 def run_judge_pair(
-    question, answer_a, answer_b, model, multi_turn=False, model_modifier=None
+    question: str,
+    answer_a: str,
+    answer_b: str,
+    model: str,
+    multi_turn: bool = False,
+    model_modifier: str = None,
+    include_langs: Optional[Iterable[str]] = None,
 ):
     system_prompt, user_prompt = format_judge_answers(
-        question, answer_a, answer_b, multi_turn, model_modifier=model_modifier
+        question,
+        answer_a,
+        answer_b,
+        multi_turn,
+        model_modifier=model_modifier,
+        include_langs=include_langs,
     )
     winner = "error"
 
