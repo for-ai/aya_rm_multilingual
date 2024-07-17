@@ -91,3 +91,16 @@ python -m scripts/run_generative.py \
     --num_gpus 4 \
     --output_dir $OUTDIR
 ```
+
+To improve prompt output especially on multilingual cases, we recommend passing a tuple to the `--include_languages` parameter.
+The first value should be the language a prompt was written in, and the second value should be the language the assistant should use in its answer.
+
+```diff
+python -m scripts/run_generative.py \
+    --dataset_name $DATASET \
+    --split $SPLIT \
+    --model "meta-llama/Meta-Llama-3-70B-Instruct" \
+    --num_gpus 4 \
++   --include_languages German English
+    --output_dir $OUTDIR
+```
