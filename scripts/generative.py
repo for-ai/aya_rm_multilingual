@@ -360,8 +360,8 @@ def process_judgement(judgment: str, is_prometheus: bool = False) -> Literal["A"
 # noqa adapted from FastChat https://github.com/lm-sys/FastChat/blob/b015f21cb9d0cf3c87d2a5e53008074c537e8be0/fastchat/llm_judge/common.py#L235C1-L312C1
 def run_judge_pair(
     question: str,
-    answer_a: str,
-    answer_b: str,
+    answer_a: list[dict[str, str]],
+    answer_b: list[dict[str, str]],
     model: str,
     multi_turn: bool = False,
     model_modifier: str = None,
