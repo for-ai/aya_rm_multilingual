@@ -616,7 +616,7 @@ def chat_completion_cohere(
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
-            output = response.get("text")
+            output = response.dict().get("text")
             break
         # except any exception
         except Exception as e:

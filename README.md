@@ -120,8 +120,8 @@ pip install -r requirements-dev.txt
 Then, you can run the tests by:
 
 ```sh
-pytest tests/
-pytest tests/ -m "not api"  # to ignore tests that make use of third-party APIs
+pytest tests/ -v --capture=no
+pytest tests/ -m "not api" -v --capture=no  # to ignore tests that make use of third-party APIs
 ```
 
 When developing, we format the code using [black](https://black.readthedocs.io/en/stable/index.html) and [isort](https://pycqa.github.io/isort/), to be consistent with the RewardBench codebase.

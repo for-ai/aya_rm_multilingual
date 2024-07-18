@@ -86,8 +86,8 @@ def test_run_judge_pair(multilingual):
         ans_b = "The capital of Japan is Tokyo"
         include_langs = None
 
-    answer_a = ([{"role": "user", "content": question}, {"role": "assistant", "content": ans_a}],)
-    answer_b = ([{"role": "user", "content": question}, {"role": "assistant", "content": ans_b}],)
+    answer_a = [{"role": "user", "content": question}, {"role": "assistant", "content": ans_a}]
+    answer_b = [{"role": "user", "content": question}, {"role": "assistant", "content": ans_b}]
 
     winner, user_prompt, judgement = run_judge_pair(
         question,
