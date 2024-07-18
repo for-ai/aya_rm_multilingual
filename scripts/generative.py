@@ -70,14 +70,14 @@ TOGETHER_MODEL_LIST = (
 GEMINI_MODEL_LIST = ("gemini-1.5-flash-001", "gemini-1.5-pro-001")
 
 # https://docs.cohere.com/docs/models
-COHERE_MODEL_LIST = [
+COHERE_MODEL_LIST = (
     "command-r-plus",
     "command-r",
     "command",
     "command-nightly",
     "command-light",
     "command-light-nightly",
-]
+)
 
 API_MODEL_LIST = (
     OPENAI_MODEL_LIST + ANTHROPIC_MODEL_LIST + TOGETHER_MODEL_LIST + COHERE_MODEL_LIST
@@ -263,8 +263,8 @@ m_prompt_v2_gemini = (
 # format with prompt_template.format(question=question, answer_a=answer_a, answer_b=answer_b)
 def format_judge_answers(
     question: str,
-    answer_a: str,
-    answer_b: str,
+    answer_a: list[dict[str, str]],
+    answer_b: list[dict[str, str]],
     multi_turn: bool = False,
     model_modifier: str = None,
     include_langs: Optional[Iterable[str]] = None,
@@ -350,7 +350,7 @@ def process_judgement(
 ) -> Literal["A", "B", "error"]:
     if is_prometheus:
         if "[RESULT]" in judgment:
-            # after [RESULT] is A or B, else error (mayube spaces)
+            # after [RESULT] is A or B, else error (maybe spaces)
             # result = judgment.split("[RESULT]")[1].strip()
             if judgment[-1] == "A":
                 return "A"
