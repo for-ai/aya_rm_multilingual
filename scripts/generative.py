@@ -20,12 +20,13 @@
 
 import os
 import time as time
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, Literal, Optional, Tuple
 
 import anthropic
 import google.generativeai as genai
 import openai
-from fastchat.conversation import get_conv_template
+from cohere import Client as CohereClient
+from fastchat.conversation import Conversation, get_conv_template
 from google.generativeai.types import HarmBlockThreshold, HarmCategory
 from openai import OpenAI
 from together import Together
@@ -68,7 +69,19 @@ TOGETHER_MODEL_LIST = (
 
 GEMINI_MODEL_LIST = ("gemini-1.5-flash-001", "gemini-1.5-pro-001")
 
-API_MODEL_LIST = OPENAI_MODEL_LIST + ANTHROPIC_MODEL_LIST + TOGETHER_MODEL_LIST
+# https://docs.cohere.com/docs/models
+COHERE_MODEL_LIST = [
+    "command-r-plus",
+    "command-r",
+    "command",
+    "command-nightly",
+    "command-light",
+    "command-light-nightly",
+]
+
+API_MODEL_LIST = (
+    OPENAI_MODEL_LIST + ANTHROPIC_MODEL_LIST + TOGETHER_MODEL_LIST + COHERE_MODEL_LIST
+)
 
 
 # API setting constants
@@ -332,7 +345,9 @@ def format_judge_answers(
     return system_prompt, user_prompt
 
 
-def process_judgement(judgment: str, is_prometheus: bool = False):
+def process_judgement(
+    judgment: str, is_prometheus: bool = False
+) -> Literal["A", "B", "error"]:
     if is_prometheus:
         if "[RESULT]" in judgment:
             # after [RESULT] is A or B, else error (mayube spaces)
@@ -363,7 +378,7 @@ def run_judge_pair(
     multi_turn: bool = False,
     model_modifier: str = None,
     include_langs: Optional[Iterable[str]] = None,
-):
+) -> Tuple[Literal["A", "B", "error"], str, str]:
     system_prompt, user_prompt = format_judge_answers(
         question,
         answer_a,
@@ -418,6 +433,11 @@ def run_judge_pair(
         conv.append_message(conv.roles[1], None)
         conv.set_system_message(system_prompt)
         judgment = chat_completion_together(model, conv, temperature=0, max_tokens=2048)
+    elif model in COHERE_MODEL_LIST:
+        conv = get_conv_template("raw")
+        conv.append_message(conv.roles[0], user_prompt)
+        conv.set_system_message(system_prompt)
+        judgment = chat_completion_cohere(model, conv, temperature=0, max_tokens=2048)
 
     else:
         raise ValueError(f"Model {model} not supported")
@@ -428,11 +448,17 @@ def run_judge_pair(
 
 # also uses ArenaHard code
 # noqa https://github.com/lm-sys/arena-hard/blob/51c04e5a6449e920c01d4159f56a051216af6bd9/utils.py#L166
-def chat_completion_anthropic(model, conv, temperature, max_tokens, api_dict=None):
+def chat_completion_anthropic(
+    model: str,
+    conv: Conversation,
+    temperature: float,
+    max_tokens: int,
+    api_dict: dict = None,
+) -> str:
     if api_dict is not None and "api_key" in api_dict:
         api_key = api_dict["api_key"]
     else:
-        api_key = os.environ["ANTHROPIC_API_KEY"]
+        api_key = _get_api_key("ANTHROPIC_API_KEY")
 
     sys_msg = ""
     if conv.messages[0]["role"] == "system":
@@ -459,8 +485,15 @@ def chat_completion_anthropic(model, conv, temperature, max_tokens, api_dict=Non
     return output.strip()
 
 
-def chat_completion_gemini(model, conv, temperature, max_tokens, api_dict=None):
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+def chat_completion_gemini(
+    model: str,
+    conv: Conversation,
+    temperature: float,
+    max_tokens: int,
+    api_dict: dict = None,
+) -> str:
+    api_key = _get_api_key("GEMINI_API_KEY")
+    genai.configure(api_key=api_key)
     api_model = genai.GenerativeModel(model)
 
     for _ in range(API_MAX_RETRY):
@@ -514,8 +547,15 @@ def chat_completion_gemini(model, conv, temperature, max_tokens, api_dict=None):
         return "error"
 
 
-def chat_completion_together(model, conv, temperature, max_tokens, api_dict=None):
-    client = Together(api_key=os.environ["TOGETHER_API_KEY"])
+def chat_completion_together(
+    model: str,
+    conv: Conversation,
+    temperature: float,
+    max_tokens: int,
+    api_dict: dict = None,
+) -> str:
+    api_key = _get_api_key("TOGETHER_API_KEY")
+    client = Together(api_key=api_key)
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         try:
@@ -536,8 +576,15 @@ def chat_completion_together(model, conv, temperature, max_tokens, api_dict=None
     return output
 
 
-def chat_completion_openai(model, conv, temperature, max_tokens, api_dict=None):
-    client = OpenAI()
+def chat_completion_openai(
+    model: str,
+    conv: Conversation,
+    temperature: float,
+    max_tokens: int,
+    api_dict: dict = None,
+) -> str:
+    api_key = _get_api_key("OPENAI_API_KEY")
+    client = OpenAI(api_key=api_key)
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         try:
@@ -567,3 +614,39 @@ def chat_completion_openai(model, conv, temperature, max_tokens, api_dict=None):
             time.sleep(API_RETRY_SLEEP)
 
     return output
+
+
+def chat_completion_cohere(
+    model: str,
+    conv: Conversation,
+    temperature: float,
+    max_tokens: int,
+    api_dict: dict = None,
+) -> str:
+    api_key = _get_api_key("CO_API_KEY")
+    co = CohereClient(api_key=api_key)
+    output = API_ERROR_OUTPUT
+    for _ in range(API_MAX_RETRY):
+        try:
+            response = co.chat(
+                message=conv.messages[0][1],
+                preamble=conv.system_message,
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+            output = response.get("text")
+            break
+        # except any exception
+        except Exception as e:
+            print(f"Failed to connect to Cohere API: {e}")
+            time.sleep(API_RETRY_SLEEP)
+    return output
+
+
+def _get_api_key(key_name: str) -> Optional[str]:
+    api_key = os.getenv(key_name)
+    if not api_key:
+        raise ValueError(f"{key_name} not found!")
+    else:
+        return api_key

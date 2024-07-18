@@ -64,8 +64,8 @@ If you're planning to use some closed-source APIs, you also need to set the toke
 
 ```sh
 export OPENAI_API_KEY=<your openai token>
+export CO_API_KEY=<your cohere api token>
 export ANTHROPIC_API_KEY=<your anthropic token>
-export GEMINI_API_KEY=<your gemini token>
 ```
 
 Say we want to obtain the preferences of `gpt-4-2024-04-09`:
