@@ -1,8 +1,8 @@
+"""Testing new functions in generative.py"""
+
 import pytest
 
-from scripts.generative import chat_completion_anthropic
-from scripts.generative import chat_completion_cohere, chat_completion_gemini
-from scripts.generative import chat_completion_together, format_judge_answers
+from scripts.generative import chat_completion_cohere, format_judge_answers
 from scripts.generative import process_judgement, run_judge_pair
 
 
@@ -40,3 +40,19 @@ def test_format_judge_answers_multilingual_includes_language():
 
     assert src_lang in sys_prompt
     assert tgt_lang in sys_prompt
+
+
+@pytest.mark.parametrize("judgment,expected", [("[[A]]", "A"), ("[[B]]", "B"), ("I don't know", "error")])
+def test_process_judgment_answers(judgment, expected):
+    answer = process_judgement(judgment, is_prometheus=False)
+    assert answer == expected
+
+
+@pytest.mark.api
+def test_cohere_api():
+    pass
+
+
+@pytest.mark.api
+def test_run_judge_pair():
+    pass

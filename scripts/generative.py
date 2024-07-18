@@ -79,9 +79,7 @@ COHERE_MODEL_LIST = (
     "command-light-nightly",
 )
 
-API_MODEL_LIST = (
-    OPENAI_MODEL_LIST + ANTHROPIC_MODEL_LIST + TOGETHER_MODEL_LIST + COHERE_MODEL_LIST
-)
+API_MODEL_LIST = OPENAI_MODEL_LIST + ANTHROPIC_MODEL_LIST + TOGETHER_MODEL_LIST + COHERE_MODEL_LIST
 
 
 # API setting constants
@@ -285,9 +283,7 @@ def format_judge_answers(
             system_prompt = (
                 REL_SYSTEM_PROMPT
                 if not include_langs
-                else M_REL_SYSTEM_PROMPT.format(
-                    src_lang=include_langs[0], tgt_lang=include_langs[1]
-                )
+                else M_REL_SYSTEM_PROMPT.format(src_lang=include_langs[0], tgt_lang=include_langs[1])
             )
             user_prompt = RELATIVE_PROMPT.format(
                 orig_instruction=question,
@@ -302,9 +298,7 @@ def format_judge_answers(
             system_prompt = (
                 MTBENCH_MULTI_V2["system_prompt"]
                 if not include_langs
-                else m_prompt_multi_v2.format(
-                    src_lang=include_langs[0], tgt_lang=include_langs[1]
-                )
+                else m_prompt_multi_v2.format(src_lang=include_langs[0], tgt_lang=include_langs[1])
             )
             user_prompt = MTBENCH_MULTI_V2["prompt_template"].format(
                 question_1=question,
@@ -319,9 +313,7 @@ def format_judge_answers(
             system_prompt = (
                 MTBENCH_V2["system_prompt"]
                 if not include_langs
-                else m_prompt_v2.format(
-                    src_lang=include_langs[0], tgt_lang=include_langs[1]
-                )
+                else m_prompt_v2.format(src_lang=include_langs[0], tgt_lang=include_langs[1])
             )
             user_prompt = MTBENCH_V2["prompt_template"].format(
                 question=question,
@@ -335,9 +327,7 @@ def format_judge_answers(
         prefix = (
             prompt_v2_gemini
             if not include_langs
-            else m_prompt_v2_gemini.format(
-                src_lang=include_langs[0], tgt_lang=include_langs[1]
-            )
+            else m_prompt_v2_gemini.format(src_lang=include_langs[0], tgt_lang=include_langs[1])
         )
         user_prompt = prefix + user_prompt
         system_prompt = None
@@ -345,9 +335,7 @@ def format_judge_answers(
     return system_prompt, user_prompt
 
 
-def process_judgement(
-    judgment: str, is_prometheus: bool = False
-) -> Literal["A", "B", "error"]:
+def process_judgement(judgment: str, is_prometheus: bool = False) -> Literal["A", "B", "error"]:
     if is_prometheus:
         if "[RESULT]" in judgment:
             # after [RESULT] is A or B, else error (maybe spaces)
@@ -394,9 +382,7 @@ def run_judge_pair(
         winners = []
         judgments = []
         for m in model:
-            winner, _, judgment = run_judge_pair(
-                question, answer_a, answer_b, m, multi_turn
-            )
+            winner, _, judgment = run_judge_pair(question, answer_a, answer_b, m, multi_turn)
             winners.append(winner)
             judgments.append(judgment)
         return winners, user_prompt, judgments
@@ -419,9 +405,7 @@ def run_judge_pair(
         conv.append_message(conv.roles[1], None)
         conv.messages = conv.to_openai_api_messages()
 
-        judgment = chat_completion_anthropic(
-            model, conv, temperature=0, max_tokens=1024
-        )
+        judgment = chat_completion_anthropic(model, conv, temperature=0, max_tokens=1024)
     elif model in GEMINI_MODEL_LIST:
         text = user_prompt
         judgment = chat_completion_gemini(model, text, temperature=0, max_tokens=4096)
@@ -506,9 +490,7 @@ def chat_completion_gemini(
                     max_output_tokens=max_tokens,
                     temperature=temperature,
                 ),
-                request_options={
-                    "timeout": 1000
-                },  # eliminate Failed to connect to Gemini API: 504 Deadline Exceeded
+                request_options={"timeout": 1000},  # eliminate Failed to connect to Gemini API: 504 Deadline Exceeded
                 safety_settings={
                     HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
                     HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
@@ -529,9 +511,7 @@ def chat_completion_gemini(
                 # If the response doesn't contain text, check if the prompt was blocked.
                 print(f"Prompt feedback {response.prompt_feedback}")
                 # Also check the finish reason to see if the response was blocked.
-                print(
-                    f"Finish reason {response.candidates[0].finish_reason}"
-                )  # 5 is "unknown reason"
+                print(f"Finish reason {response.candidates[0].finish_reason}")  # 5 is "unknown reason"
                 # If the finish reason was SAFETY, the safety ratings have more details.
                 print(f"Safety ratings {response.candidates[0].safety_ratings}")
             else:
