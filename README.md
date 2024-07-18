@@ -68,6 +68,8 @@ export CO_API_KEY=<your cohere api token>
 export ANTHROPIC_API_KEY=<your anthropic token>
 ```
 
+**You can also store all your API keys in a .env file.**
+It will be loaded using the [python-dotenv library](https://github.com/theskumar/python-dotenv).
 Say we want to obtain the preferences of `gpt-4-2024-04-09`:
 
 ```sh

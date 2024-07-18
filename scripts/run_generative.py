@@ -35,6 +35,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import numpy as np
+from dotenv import load_dotenv
 from datasets import load_dataset
 from fastchat.conversation import get_conv_template
 from transformers import AutoTokenizer
@@ -43,6 +44,8 @@ from vllm import LLM, SamplingParams
 from scripts.generative import ANTHROPIC_MODEL_LIST, API_MODEL_LIST, GEMINI_MODEL_LIST
 from scripts.generative import OPENAI_MODEL_LIST, format_judge_answers
 from scripts.generative import process_judgement, run_judge_pair
+
+load_dotenv(verbose=True)
 
 # get token from HF_TOKEN env variable, but if it doesn't exist pass none
 HF_TOKEN = os.getenv("HF_TOKEN", None)

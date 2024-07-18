@@ -1,9 +1,12 @@
 """Testing new functions in generative.py"""
 
 import pytest
+from dotenv import load_dotenv
 
 from scripts.generative import chat_completion_cohere, format_judge_answers
 from scripts.generative import process_judgement, run_judge_pair
+
+load_dotenv(verbose=True)
 
 
 def test_format_judge_answers_multilingual_includes_language():
