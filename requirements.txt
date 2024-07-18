@@ -6,4 +6,5 @@ openai==1.35.13
 anthropic==0.31.0
 google-generativeai==0.7.2
 together==1.2.1
+cohere==5.6.1
 git+https://github.com/lm-sys/FastChat.git@92a6d1fcd69a88ea169c0b01065ce44f1e690a2c
