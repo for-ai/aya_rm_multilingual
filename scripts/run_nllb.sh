@@ -7,7 +7,6 @@ declare -A languages=(
     ["zho_Hant"]="Chinese_Traditional"
     ["ces_Latn"]="Czech"
     ["nld_Latn"]="Dutch"
-    ["eng_Latn"]="English"
     ["fra_Latn"]="French"
     ["deu_Latn"]="German"
     ["ell_Grek"]="Greek"
