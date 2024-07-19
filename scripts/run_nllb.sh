@@ -29,6 +29,7 @@ declare -A languages=(
 
 # Define the dataset name and columns to translate
 DATASET_NAME="allenai/reward-bench"
+MODEL_NAME="facebook/nllb-200-distilled-600M"
 COLUMNS_TO_TRANSLATE=("prompt" "chosen" "rejected")
 MAX_LENGTH=512
 SUBSET_SIZE=1000000
@@ -47,6 +48,7 @@ run_translation() {
 
     CUDA_VISIBLE_DEVICES=$gpu_id python translate_preference_pairs_nllb.py \
         --dataset_name "$DATASET_NAME" \
+        --model_name "$MODEL_NAME" \
         --target_language "$lang_code" \
         --columns_to_translate "${COLUMNS_TO_TRANSLATE[@]}" \
         --max_length "$MAX_LENGTH" \

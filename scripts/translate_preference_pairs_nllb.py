@@ -31,13 +31,12 @@ def validate_language_code(tokenizer, target_language):
 
 
 def translate_dataset(
-    dataset, columns_to_translate, target_language, max_length, subset_size=None, output_dir="translations"
+    dataset, model_name, columns_to_translate, target_language, max_length, subset_size=None, output_dir="translations"
 ):
     # Check if GPU is available and set the device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Load the model and tokenizer
-    model_name = "facebook/nllb-200-distilled-600M"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(device)
 
@@ -93,15 +92,16 @@ def translate_dataset(
 
 
 if __name__ == "__main__":
+    # fmt: off
     parser = argparse.ArgumentParser(description="Translate dataset columns using a specified translation model.")
     parser.add_argument("--dataset_name", type=str, required=True, help="Hugging Face dataset name.")
     parser.add_argument("--target_language", type=str, required=True, help="Target language code (e.g., fra_Latn).")
+    parser.add_argument("--model_name", type=str, default="facebook/nllb-200-distilled-600M", required=False, help="Hugging Face model name.")
     parser.add_argument("--columns_to_translate", type=str, nargs="+", required=True, help="Columns to translate.")
     parser.add_argument("--max_length", type=int, default=30, help="Maximum length for translation.")
     parser.add_argument("--subset_size", type=int, help="Size of the random subset to translate.")
-    parser.add_argument(
-        "--output_dir", type=str, default="translations", help="Output directory to save translations."
-    )
+    parser.add_argument("--output_dir", type=str, default="translations", help="Output directory to save translations.")
+    # fmt: on
 
     args = parser.parse_args()
 
@@ -110,7 +110,13 @@ if __name__ == "__main__":
 
     # Translate dataset
     translate_dataset(
-        dataset, args.columns_to_translate, args.target_language, args.max_length, args.subset_size, args.output_dir
+        dataset,
+        args.model_name,
+        args.columns_to_translate,
+        args.target_language,
+        args.max_length,
+        args.subset_size,
+        args.output_dir,
     )
 
 # Reference: Language and FLORES-200 codes
