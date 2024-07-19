@@ -18,11 +18,8 @@ logging.basicConfig(level=logging.INFO)
 
 
 def get_args():
-    parser = argparse.ArgumentParser(
-        description="Convert a HuggingFace dataset into the RewardBench format."
-    )
-
     # fmt: off
+    parser = argparse.ArgumentParser(description="Convert a HuggingFace dataset into the RewardBench format.")
     parser.add_argument("--dataset", type=str, default="nthakur/multilingual-ultrafeedback-dpo-v0.1", help="Dataset to convert.")
     parser.add_argument("--output_path", type=Path, default="data/multilingual-ultrafeedback-dpo-v0.1.json", help="Path to save converted dataset as JSON file.")
     parser.add_argument("--en", action="store_true", help="Use the english columns.")
