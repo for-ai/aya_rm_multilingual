@@ -46,7 +46,7 @@ run_translation() {
     local language=${languages[$lang_code]}
     echo "Translating to $language ($lang_code) on GPU $gpu_id"
 
-    CUDA_VISIBLE_DEVICES=$gpu_id python translate_preference_pairs_nllb.py \
+    CUDA_VISIBLE_DEVICES=$gpu_id python -m scripts.translate_preference_pairs_nllb.py \
         --dataset_name "$DATASET_NAME" \
         --model_name "$MODEL_NAME" \
         --target_language "$lang_code" \
