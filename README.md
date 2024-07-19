@@ -64,7 +64,7 @@ rewardbench \
 The evaluation parameters can be found in the [allenai/reward-bench](https://github.com/allenai/reward-bench/blob/main/scripts/configs/eval_configs.yaml) repository.
 This runs the reward model on the (prompt, chosen, rejected) triples and give us the reward score for each instance.
 The results are saved into a JSON file inside the `$OUTDIR` directory.
-Finally, you can find some experiments in the `scripts/run_rm_evals.sh` script.
+Finally, you can find some experiments in the `experiments/run_rm_evals.sh` script.
 
 ### Getting rewards from a Generative RM on a HuggingFace dataset
 
@@ -77,10 +77,12 @@ If you're planning to use some closed-source APIs, you also need to set the toke
 
 ```sh
 export OPENAI_API_KEY=<your openai token>
+export CO_API_KEY=<your cohere api token>
 export ANTHROPIC_API_KEY=<your anthropic token>
-export GEMINI_API_KEY=<your gemini token>
 ```
 
+**You can also store all your API keys in a .env file.**
+It will be loaded using the [python-dotenv library](https://github.com/theskumar/python-dotenv).
 Say we want to obtain the preferences of `gpt-4-2024-04-09`:
 
 ```sh
@@ -103,4 +105,41 @@ python -m scripts/run_generative.py \
     --model "meta-llama/Meta-Llama-3-70B-Instruct" \
     --num_gpus 4 \
     --output_dir $OUTDIR
+```
+
+To improve prompt output especially on multilingual cases, we recommend passing a tuple to the `--include_languages` parameter.
+The first value should be the language a prompt was written in, and the second value should be the language the assistant should use in its answer.
+
+```diff
+python -m scripts/run_generative.py \
+    --dataset_name $DATASET \
+    --split $SPLIT \
+    --model "meta-llama/Meta-Llama-3-70B-Instruct" \
+    --num_gpus 4 \
++   --include_languages German English
+    --output_dir $OUTDIR
+```
+
+
+## Testing and Development
+
+This codebase contains minimal tests, mostly we test functions that were added or patched from RewardBench.
+First, you need to install all the development dependencies:
+
+```sh
+pip install -r requirements-dev.txt
+```
+
+Then, you can run the tests by:
+
+```sh
+pytest tests/ -v --capture=no
+pytest tests/ -m "not api" -v --capture=no  # to ignore tests that make use of third-party APIs
+```
+
+When developing, we format the code using [black](https://black.readthedocs.io/en/stable/index.html) and [isort](https://pycqa.github.io/isort/), to be consistent with the RewardBench codebase.
+You can automatically format your code by running:
+
+```
+make style
 ```

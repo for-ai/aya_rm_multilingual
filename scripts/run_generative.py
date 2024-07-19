@@ -35,14 +35,17 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import numpy as np
+from dotenv import load_dotenv
 from datasets import load_dataset
 from fastchat.conversation import get_conv_template
-from rewardbench.generative import ANTHROPIC_MODEL_LIST, API_MODEL_LIST
-from rewardbench.generative import GEMINI_MODEL_LIST, OPENAI_MODEL_LIST
-from rewardbench.generative import format_judge_answers, process_judgement
-from rewardbench.generative import run_judge_pair
 from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
+
+from scripts.generative import ANTHROPIC_MODEL_LIST, API_MODEL_LIST, GEMINI_MODEL_LIST
+from scripts.generative import OPENAI_MODEL_LIST, format_judge_answers
+from scripts.generative import process_judgement, run_judge_pair
+
+load_dotenv(verbose=True)
 
 # get token from HF_TOKEN env variable, but if it doesn't exist pass none
 HF_TOKEN = os.getenv("HF_TOKEN", None)
@@ -59,8 +62,9 @@ def get_args():
     parser.add_argument("--dataset_name", type=str, required=True, help="name of dataset to test on")
     parser.add_argument("--split", default="test", type=str, required=True, help="dataset split to evaluate")
     parser.add_argument("--model", type=str, nargs="+", required=True, help="name of model to use")
-    parser.add_argument("--output_dir", type=str, required=True, help="Directory to save the results.")
+    parser.add_argument("--output_dir", type=str, required=True, help="directory to save the results")
     parser.add_argument("--chat_template", type=str, default=None, help="fastchat chat template (optional)")
+    parser.add_argument("--include_languages", nargs=2, default=None, required=False, help="include language in the results (2-tuple)")
     parser.add_argument("--trust_remote_code", action="store_true", default=False, help="directly load model instead of pipeline")
     parser.add_argument("--num_gpus", type=int, default=1, help="number of gpus to use, for multi-node vllm")
     parser.add_argument("--debug", action="store_true", help="run on debug mode (show additional info, etc.)")
@@ -86,9 +90,7 @@ def main():
     log_level = logging.INFO
     logger.setLevel(log_level)
 
-    logger.info(
-        f"Running reward model on {args.model} with chat template {args.chat_template}"
-    )
+    logger.info(f"Running reward model on {args.model} with chat template {args.chat_template}")
 
     model_type = "Generative RM"
 
@@ -101,11 +103,7 @@ def main():
         assert len(args.model) % 2 == 1
 
     # define variable if is API or local
-    is_api_models = (
-        isinstance(args.model, list)
-        or args.model in API_MODEL_LIST
-        or not args.force_local
-    )
+    is_api_models = isinstance(args.model, list) or args.model in API_MODEL_LIST or not args.force_local
 
     # if model isn't API, load via vllm
     if not is_api_models:
@@ -146,9 +144,7 @@ def main():
     logger.info("*** Load dataset ***")
     dataset = load_dataset(args.dataset_name, split=args.split)
     # Rename columns for compatibility with existing API
-    dataset = dataset.rename_columns(
-        {"chosen": "text_chosen", "rejected": "text_rejected"}
-    )
+    dataset = dataset.rename_columns({"chosen": "text_chosen", "rejected": "text_rejected"})
 
     if args.sample:
         logger.debug(f"Running on first {args.sample} examples")
@@ -163,11 +159,7 @@ def main():
         def update_progress_bar(done, total):
             # Simple text-based progress bar
             progress = int(50 * done / total)  # Calculate progress (50 chars width)
-            sys.stdout.write(
-                "\r[{}{}] {}/{}".format(
-                    "#" * progress, "." * (50 - progress), done, total
-                )
-            )
+            sys.stdout.write("\r[{}{}] {}/{}".format("#" * progress, "." * (50 - progress), done, total))
             sys.stdout.flush()
 
         def get_judgement(batch, debug=args.debug):
@@ -223,9 +215,7 @@ def main():
 
             with ThreadPoolExecutor(max_workers=args.num_threads) as executor:
                 # Submit all tasks and hold their futures in a list
-                future_to_index = {
-                    executor.submit(get_judgement, x): i for i, x in enumerate(dataset)
-                }
+                future_to_index = {executor.submit(get_judgement, x): i for i, x in enumerate(dataset)}
 
                 # As tasks complete, update progress and store results in the original order
                 for future in as_completed(future_to_index):
@@ -260,39 +250,28 @@ def main():
                 answer_b,
                 multi_turn=mult_turn,
                 model_modifier=model_modifier,
+                include_langs=args.include_langs,
             )
 
             if optional_chat_template is not None:
                 optional_chat_template.set_system_message(system_prompt)
                 optional_chat_template.messages = []
-                optional_chat_template.append_message(
-                    optional_chat_template.roles[0], user_prompt
-                )
-                optional_chat_template.append_message(
-                    optional_chat_template.roles[1], None
-                )
+                optional_chat_template.append_message(optional_chat_template.roles[0], user_prompt)
+                optional_chat_template.append_message(optional_chat_template.roles[1], None)
                 prompt = optional_chat_template.get_prompt()
             elif model_modifier:
                 messages = [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ]
-                prompt = tokenizer.apply_chat_template(
-                    messages, tokenize=False, add_generation_prompt=True
-                )
+                prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
             batch["text"] = prompt
             batch["is_shuffled"] = is_shuffled
             return batch
 
         # format the dataset for the model, with optional fastchat templating
-        chat_template = (
-            get_conv_template(args.chat_template)
-            if args.chat_template is not None
-            else None
-        )
-        dataset_prompts = dataset.map(
-            format_judgements, fn_kwargs={"optional_chat_template": chat_template}
-        )
+        chat_template = get_conv_template(args.chat_template) if args.chat_template is not None else None
+        dataset_prompts = dataset.map(format_judgements, fn_kwargs={"optional_chat_template": chat_template})
 
         # collect texts of dataset in list
         prompts = dataset_prompts["text"]
