@@ -35,8 +35,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import numpy as np
-from dotenv import load_dotenv
 from datasets import load_dataset
+from dotenv import load_dotenv
 from fastchat.conversation import get_conv_template
 from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams

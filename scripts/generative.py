@@ -31,7 +31,6 @@ from google.generativeai.types import HarmBlockThreshold, HarmCategory
 from openai import OpenAI
 from together import Together
 
-
 ANTHROPIC_MODEL_LIST = (
     "claude-1",
     "claude-2",

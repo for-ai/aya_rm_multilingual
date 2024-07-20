@@ -29,6 +29,19 @@ export HF_TOKEN=<your huggingface token>
 You can find all runnable experiments in the `scripts` directory.
 Their filename should explicitly tell you their purpose. 
 
+## Running translation
+
+ We currently use `facebook/nllb-200-3.3B` for translation. First install sentence splitter using: 
+ ```
+ pip install git+https://github.com/mediacloud/sentence-splitter.git
+ ```
+ To translate reward bench into [22 Aya languages](https://arxiv.org/abs/2405.15032) run the following:
+```  
+cd scripts
+bash run_nllb.sh
+```
+You can also translate a specifc preference dataset from huggingface to a specifc target langauge using `scripts/translate_preference_pairs_nllb.py`.
+
 ### Getting rewards from a Reward Model (RM) on a HuggingFace dataset
 
 Here, we use the `rewardbench` command-line interface and pass a HuggingFace dataset.
