@@ -67,7 +67,7 @@ def get_args():
     parser.add_argument("--model", type=str, nargs="+", required=True, help="name of model to use")
     parser.add_argument("--output_dir", type=str, required=True, help="directory to save the results")
     parser.add_argument("--chat_template", type=str, default=None, help="fastchat chat template (optional)")
-    parser.add_argument("--include_languages", nargs=2, default=None, required=False, help="include language in the results (2-tuple)")
+    parser.add_argument("--include_languages", nargs=2, default=None, required=False, help="include language in the prompt (2-tuple)")
     parser.add_argument("--trust_remote_code", action="store_true", default=False, help="directly load model instead of pipeline")
     parser.add_argument("--num_gpus", type=int, default=1, help="number of gpus to use, for multi-node vllm")
     parser.add_argument("--debug", action="store_true", help="run on debug mode (show additional info, etc.)")
