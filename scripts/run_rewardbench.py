@@ -30,8 +30,7 @@ from accelerate import Accelerator
 from accelerate.logging import get_logger
 from datasets import load_dataset
 from rewardbench import DPO_MODEL_CONFIG, REWARD_MODEL_CONFIG
-from rewardbench import check_tokenizer_chat_template
-from rewardbench import load_eval_dataset
+from rewardbench import check_tokenizer_chat_template, load_eval_dataset
 from rewardbench.constants import EXAMPLE_COUNTS, SUBSET_MAPPING
 from rewardbench.utils import calculate_scores_per_section
 from tqdm import tqdm
