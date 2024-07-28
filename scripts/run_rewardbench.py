@@ -28,8 +28,12 @@ import torch
 import transformers
 from accelerate import Accelerator
 from accelerate.logging import get_logger
+from datasets import load_dataset
 from rewardbench import DPO_MODEL_CONFIG, REWARD_MODEL_CONFIG
-from rewardbench import check_tokenizer_chat_template, load_preference_dataset
+from rewardbench import check_tokenizer_chat_template
+from rewardbench import load_eval_dataset
+from rewardbench.constants import EXAMPLE_COUNTS, SUBSET_MAPPING
+from rewardbench.utils import calculate_scores_per_section
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
@@ -38,23 +42,24 @@ def main():
     parser = argparse.ArgumentParser(description="Evaluate a reward model.")
 
     # fmt: off
-    parser.add_argument("--dataset", type=str, default="allenai/reward-bench", help="The dataset to evaluate on.")
-    parser.add_argument("--split", type=str, default=None, help="The split to evaluate on.")
-    parser.add_argument("--model", type=str, required=True, help="The model to evaluate.")
-    parser.add_argument("--ref_model", type=str, default=None, help="The reference model to compare against.")
-    parser.add_argument("--tokenizer", type=str, default=None, help="The tokenizer to use (defaults to model).")
-    parser.add_argument("--chat_template", type=str, default=None, help="The chat template to use (defaults to from tokenizer, from chattemplate).")
+    parser.add_argument("--dataset", type=str, default="aya-rm-multilingual/multilingual-reward-bench", help="the dataset to evaluate on")
+    parser.add_argument("--lang_code", type=str, default=None, help="the language code to use")
+    parser.add_argument("--split", type=str, default="filtered", help="the split to evaluate on")
+    parser.add_argument("--model", type=str, required=True, help="the model to evaluate")
+    parser.add_argument("--ref_model", type=str, default=None, help="the reference model to compare against")
+    parser.add_argument("--tokenizer", type=str, default=None, help="the tokenizer to use (defaults to model)")
+    parser.add_argument("--chat_template", type=str, default=None, help="the chat template to use (defaults to from tokenizer, from chattemplate)")
     parser.add_argument("--not_quantized", action="store_true", help="disable quantization for models that are quantized by default")
     # inference args
-    parser.add_argument("--batch_size", type=int, default=8, help="The batch size to use.")
-    parser.add_argument("--max_length", type=int, default=512, help="The max length to use.")
+    parser.add_argument("--batch_size", type=int, default=8, help="the batch size to use")
+    parser.add_argument("--max_length", type=int, default=512, help="the max length to use")
     # system args
-    parser.add_argument("--load_json", action="store_true", default=False, help="Load dataset as json.")
-    parser.add_argument("--trust_remote_code", action="store_true", default=False, help="Trust remote code.")
-    parser.add_argument("--debug", action="store_true", default=False, help="Debug mode.")
-    parser.add_argument("--output_dir", type=str, default="results/", help="The output directory to save results.")
-    parser.add_argument("--save_all", action="store_true", default=False, help="Save all results.")
-    parser.add_argument("--force_truncation", action="store_true", default=False, help="Force truncation (for if model errors).")
+    parser.add_argument("--load_json", action="store_true", default=False, help="load dataset as json")
+    parser.add_argument("--trust_remote_code", action="store_true", default=False, help="set trust remote code in HuggingFace to true")
+    parser.add_argument("--debug", action="store_true", default=False, help="enable debug mode")
+    parser.add_argument("--output_dir", type=str, default="results/", help="the output directory to save results")
+    parser.add_argument("--save_all", action="store_true", default=False, help="save all results (include scores per instance)")
+    parser.add_argument("--force_truncation", action="store_true", default=False, help="force truncation (if model errors)")
     # fmt: on
     args = parser.parse_args()
 
@@ -139,10 +144,6 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, trust_remote_code=args.trust_remote_code)
     if args.dataset == "allenai/reward-bench":
         logger.info("Running core eval dataset.")
-        from rewardbench import load_eval_dataset
-        from rewardbench.constants import EXAMPLE_COUNTS, SUBSET_MAPPING
-        from rewardbench.utils import calculate_scores_per_section
-
         # primary set compiles slightly more information
         dataset, subsets = load_eval_dataset(
             core_set=True,
@@ -153,9 +154,14 @@ def main():
             keep_columns=["text_chosen", "text_rejected", "prompt"],
         )
     else:
-        dataset = load_preference_dataset(
-            args.dataset, split=args.split, json=args.load_json, tokenizer=tokenizer, conv=conv
+        dataset = load_dataset(
+            args.dataset,
+            name=args.lang_code,
+            split=args.split,
+            json=args.load_json,
         )
+        # Rename columns for compatibility with existing API
+        dataset = dataset.rename_columns({"chosen": "text_chosen", "rejected": "text_rejected"})
 
     if args.debug:
         dataset = dataset.select(range(10))
