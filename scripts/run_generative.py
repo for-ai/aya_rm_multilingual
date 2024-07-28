@@ -19,9 +19,9 @@ Updated to accommodate custom preference datasets
 
 # run a generative RM. For now, this requires openai and anthropic to be installed
 # Examples:
-# python scripts/run_generative.py --dataset_name <DATASET_NAME> --model gpt-3.5-turbo
-# python scripts/run_generative.py --dataset_name <DATASET_NAME> --model=claude-3-haiku-20240307
-# python scripts/run_generative.py --dataset_name <DATASET_NAME> --model=CohereForAI/c4ai-command-r-v01 --num_gpus 2 --force_local
+# python scripts/run_generative.py --dataset_name <DATASET_NAME> --lang_code <LANG> --model gpt-3.5-turbo
+# python scripts/run_generative.py --dataset_name <DATASET_NAME> --lang_code <LANG> --model=claude-3-haiku-20240307
+# python scripts/run_generative.py --dataset_name <DATASET_NAME> --lang_code <LANG> --model=CohereForAI/c4ai-command-r-v01 --num_gpus 2 --force_local
 
 # note: for none API models, this script uses vllm
 # pip install vllm
@@ -38,12 +38,14 @@ import numpy as np
 from datasets import load_dataset
 from dotenv import load_dotenv
 from fastchat.conversation import get_conv_template
+from rewardbench.constants import EXAMPLE_COUNTS, SUBSET_MAPPING
+from rewardbench.utils import calculate_scores_per_section
 from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
-from scripts.generative import ANTHROPIC_MODEL_LIST, API_MODEL_LIST, GEMINI_MODEL_LIST
-from scripts.generative import OPENAI_MODEL_LIST, format_judge_answers
-from scripts.generative import process_judgement, run_judge_pair
+from scripts.generative import ANTHROPIC_MODEL_LIST, API_MODEL_LIST, COHERE_MODEL_LIST
+from scripts.generative import GEMINI_MODEL_LIST, OPENAI_MODEL_LIST
+from scripts.generative import format_judge_answers, process_judgement, run_judge_pair
 
 load_dotenv(verbose=True)
 
@@ -60,6 +62,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     # fmt: off
     parser.add_argument("--dataset_name", type=str, required=True, help="name of dataset to test on")
+    parser.add_argument("--lang_code", type=str, default=None, help="the language code to use")
     parser.add_argument("--split", default="test", type=str, required=True, help="dataset split to evaluate")
     parser.add_argument("--model", type=str, nargs="+", required=True, help="name of model to use")
     parser.add_argument("--output_dir", type=str, required=True, help="directory to save the results")
@@ -142,9 +145,12 @@ def main():
     # Load dataset
     ############################
     logger.info("*** Load dataset ***")
-    dataset = load_dataset(args.dataset_name, split=args.split)
+    dataset = load_dataset(args.dataset_name, name=args.lang_code, split=args.split)
     # Rename columns for compatibility with existing API
     dataset = dataset.rename_columns({"chosen": "text_chosen", "rejected": "text_rejected"})
+    subsets = dataset["subset"]
+    ids = dataset["id"]
+    dataset = dataset.remove_columns("id")
 
     if args.sample:
         logger.debug(f"Running on first {args.sample} examples")
@@ -302,6 +308,10 @@ def main():
     # add column for results for easy printing
     out_dataset = dataset.add_column("results", results)
 
+    # add subsets back (removed so it's not handled by cuda)
+    out_dataset = out_dataset.add_column("subset", subsets)
+    out_dataset = out_dataset.add_column("id", ids)
+
     # model name concat if list
     if isinstance(args.model, list):
         model_name = "_".join(args.model)
@@ -315,6 +325,27 @@ def main():
         model_name = "anthropic/" + model_name
     elif args.model in GEMINI_MODEL_LIST:
         model_name = "google/" + model_name
+    elif args.model in COHERE_MODEL_LIST:
+        model_name = "cohere/" + model_name
+
+    # get core dataset
+    results_grouped = {}
+    results_grouped["model"] = model_name
+    results_grouped["model_type"] = model_type
+    results_grouped["chat_template"] = args.chat_template
+
+    # print per subset and log into results_grouped file
+    present_subsets = np.unique(subsets)
+    for subset in present_subsets:
+        subset_dataset = out_dataset.filter(lambda example: example["subset"] == subset)
+        num_correct = sum(subset_dataset["results"])
+        num_total = len(subset_dataset["results"])
+        print(f"{subset}: {num_correct}/{num_total} ({num_correct/num_total})")
+        results_grouped[subset] = num_correct / num_total
+
+    # log leaderboard aggregated results
+    results_leaderboard = calculate_scores_per_section(EXAMPLE_COUNTS, SUBSET_MAPPING, results_grouped)
+    print(results_leaderboard)
 
     # compute scores
     num_correct = sum(out_dataset["results"])
