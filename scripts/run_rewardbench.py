@@ -162,6 +162,7 @@ def main():
         )
         # Rename columns for compatibility with existing API
         dataset = dataset.rename_columns({"chosen": "text_chosen", "rejected": "text_rejected"})
+        subsets = dataset["subset"]
 
     if args.debug:
         dataset = dataset.select(range(10))
@@ -326,7 +327,8 @@ def main():
     logger.info(f"Mean rejected: {np.mean(scores_rejected)}, std: {np.std(scores_rejected)}")
     logger.info(f"Mean margin: {np.mean(np.array(scores_chosen) - np.array(scores_rejected))}")
 
-    if args.dataset == "allenai/reward-bench":
+    if "reward-bench" in args.dataset:
+        logger.info("Computing grouped results")
         out_dataset = dataset.add_column("results", results)
         if args.debug:
             subsets = subsets[:10]
@@ -366,7 +368,7 @@ def main():
                 "ref_model": args.ref_model,
                 "tokenizer": tokenizer_path,
                 "chat_template": args.chat_template,
-                "extra_results": results_grouped if args.dataset == "allenai/reward-bench" else None,
+                "extra_results": results_grouped if "reward-bench" in args.dataset else None,
             },
             f,
         )
