@@ -293,7 +293,6 @@ def format_judge_answers(
                 **kwargs,
             )
     else:
-        print("Using the MT-Bench prompts")
         if multi_turn:
             system_prompt = (
                 MTBENCH_MULTI_V2["system_prompt"]

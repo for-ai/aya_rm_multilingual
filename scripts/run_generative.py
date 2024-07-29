@@ -43,9 +43,11 @@ from rewardbench.utils import calculate_scores_per_section
 from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
-from scripts.generative import ANTHROPIC_MODEL_LIST, API_MODEL_LIST, COHERE_MODEL_LIST
-from scripts.generative import GEMINI_MODEL_LIST, OPENAI_MODEL_LIST
-from scripts.generative import format_judge_answers, process_judgement, run_judge_pair
+from scripts.generative import ANTHROPIC_MODEL_LIST, API_MODEL_LIST
+from scripts.generative import COHERE_MODEL_LIST, GEMINI_MODEL_LIST
+from scripts.generative import OPENAI_MODEL_LIST, format_judge_answers
+from scripts.generative import process_judgement, run_judge_pair
+from scripts.utils import load_multilingual_eval_dataset
 
 load_dotenv(verbose=True)
 
@@ -145,10 +147,18 @@ def main():
     # Load dataset
     ############################
     logger.info("*** Load dataset ***")
-    dataset = load_dataset(args.dataset_name, name=args.lang_code, split=args.split)
-    # Rename columns for compatibility with existing API
-    dataset = dataset.rename_columns({"chosen": "text_chosen", "rejected": "text_rejected"})
-    subsets = dataset["subset"]
+    dataset, subsets = load_multilingual_eval_dataset(
+        dataset_name=args.dataset,
+        lang_code=args.lang_code,
+        conv=get_conv_template("raw"),  # not used in this script (handled later)
+        custom_dialogue_formatting=True,  # handle formatting later
+        tokenizer=None,
+        logger=logger,
+        keep_columns=["text_chosen", "text_rejected", "prompt"],
+        max_turns=4,
+    )
+
+    # copy id for saving, then remove
     ids = dataset["id"]
     dataset = dataset.remove_columns("id")
 

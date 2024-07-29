@@ -36,6 +36,8 @@ from rewardbench.utils import calculate_scores_per_section
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
+from scripts.utils import load_multilingual_eval_dataset
+
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate a reward model.")
@@ -153,15 +155,14 @@ def main():
             keep_columns=["text_chosen", "text_rejected", "prompt"],
         )
     else:
-        dataset = load_dataset(
-            args.dataset,
-            name=args.lang_code,
-            split=args.split,
-            json=args.load_json,
+        dataset, subsets = load_multilingual_eval_dataset(
+            dataset_name=args.dataset,
+            lang_code=args.lang_code,
+            custom_dialogue_formatting=False,
+            tokenizer=tokenizer,
+            logger=logger,
+            keep_columns=["text_chosen", "text_rejected", "prompt"],
         )
-        # Rename columns for compatibility with existing API
-        dataset = dataset.rename_columns({"chosen": "text_chosen", "rejected": "text_rejected"})
-        subsets = dataset["subset"]
 
     if args.debug:
         dataset = dataset.select(range(10))
