@@ -180,7 +180,7 @@ def main():
 
         def get_judgement(batch, debug=args.debug):
             mult_turn = True if len(batch["text_chosen"]) > 2 else False
-            prompt = batch["prompt"]
+            prompt = batch["text_chosen"][0]["content"]
             answer_a = batch["text_chosen"]
             answer_b = batch["text_rejected"]
 
@@ -251,7 +251,7 @@ def main():
         def format_judgements(batch, optional_chat_template=None):
             # TODO expand this to include fastchat chat templates if needed
             mult_turn = True if len(batch["text_chosen"]) > 2 else False
-            prompt = batch["prompt"]
+            prompt = batch["text_chosen"][0]["content"]
             answer_a = batch["text_chosen"]
             answer_b = batch["text_rejected"]
 
