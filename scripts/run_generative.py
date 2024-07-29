@@ -154,7 +154,7 @@ def main():
         custom_dialogue_formatting=True,  # handle formatting later
         tokenizer=None,
         logger=logger,
-        keep_columns=["text_chosen", "text_rejected", "prompt"],
+        keep_columns=["text_chosen", "text_rejected", "id"],
         max_turns=4,
     )
 
