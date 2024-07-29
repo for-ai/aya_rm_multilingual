@@ -148,7 +148,7 @@ def main():
     ############################
     logger.info("*** Load dataset ***")
     dataset, subsets = load_multilingual_eval_dataset(
-        dataset_name=args.dataset,
+        dataset_name=args.dataset_name,
         lang_code=args.lang_code,
         conv=get_conv_template("raw"),  # not used in this script (handled later)
         custom_dialogue_formatting=True,  # handle formatting later
