@@ -375,7 +375,7 @@ def main():
 
     # if save_all is passed, save a large jsonl with all scores_chosen, scores_rejected
     if args.save_all:
-        output_path = args.output_dir + args.model + args.lang_code + "_all.jsonl"
+        output_path = args.output_dir + args.model + "-" + args.lang_code + "-all.jsonl"
         dirname = os.path.dirname(output_path)
         os.makedirs(dirname, exist_ok=True)
 

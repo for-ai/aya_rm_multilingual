@@ -380,7 +380,7 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    output_file = model_name.replace("/", "___") + args.lang_code + ".json"
+    output_file = model_name.replace("/", "___") + "-" + args.lang_code + ".json"
     output_path = output_dir / output_file
     with open(output_path, "w") as f:
         json.dump(results_dict, f, indent=4)
