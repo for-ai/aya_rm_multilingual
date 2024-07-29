@@ -373,14 +373,19 @@ def main():
             "num_total": num_total,
             "results": results,
         },
+        "leaderboard": results_leaderboard,
+        "subset": results_grouped,
     }
 
     output_dir = Path(args.output_dir)
-    file_path = output_dir / f"{model_name.replace('/', '___')}.json"
-    with open(file_path, "w") as f:
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    output_file = model_name.replace("/", "___") + args.lang_code + ".json"
+    output_path = output_dir / output_file
+    with open(output_path, "w") as f:
         json.dump(results_dict, f, indent=4)
 
-    logger.info(f"Saved results to {file_path}")
+    logger.info(f"Saved results to {output_path}")
 
 
 if __name__ == "__main__":
