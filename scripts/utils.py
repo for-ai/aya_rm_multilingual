@@ -3,7 +3,7 @@ from typing import List, Optional, Tuple
 
 import fastchat
 import transformers
-from dataset import Dataset, load_dataset
+from datasets import Dataset, load_dataset
 
 from rewardbench.utils import check_tokenizer_chat_template, prepare_dialogue
 from rewardbench.utils import prepare_dialogue_from_tokenizer
