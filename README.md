@@ -48,16 +48,17 @@ You can also translate a specifc preference dataset from huggingface to a specif
 
 ### Getting rewards from a Reward Model (RM) on a HuggingFace dataset
 
-Here, we use the `rewardbench` command-line interface and pass a HuggingFace dataset.
+Here, we use the `scripts/run_rewardbench.py` command-line interface and pass a HuggingFace dataset.
 This is useful if the reward model is trained as a Custom classifier (🛠️), Sequence classifier (🔢), or via DPO (🎯).
 For example, if we want to get the reward score of the UltraRM-13b reward model on a preference dataset, we run:
 
 ```sh
-rewardbench \
+python -m scripts.run_rewardbench \
     --model openbmb/UltraRM-13b \
     --chat_template openbmb \
     --dataset $DATASET \
-    --split $SPLIT \
+    --lang_code $LANG_CODE \
+    --split "filtered" \
     --output_dir $OUTDIR \
     --batch_size 8 \
     --trust_remote_code \
@@ -91,10 +92,11 @@ Say we want to obtain the preferences of `gpt-4-2024-04-09`:
 
 ```sh
 export OPENAI_API_KEY=<your openai token>
-python -m scripts/run_generative.py \
+python -m scripts.run_generative \
     --dataset_name $DATASET \
-    --split $SPLIT \
     --model gpt-4-turbo-2024-04-09 \
+    --split "filtered" \
+    --lang_code $LANG_CODE \
     --output_dir $OUTDIR 
 ```
 
@@ -105,7 +107,8 @@ Here's an example using `meta-llama/Meta-Llama-3-70B-Instruct`:
 ```sh
 python -m scripts/run_generative.py \
     --dataset_name $DATASET \
-    --split $SPLIT \
+    --lang_code $LANG_CODE \
+    --split "filtered" \
     --model "meta-llama/Meta-Llama-3-70B-Instruct" \
     --num_gpus 4 \
     --output_dir $OUTDIR
@@ -117,6 +120,7 @@ The first value should be the language a prompt was written in, and the second v
 ```diff
 python -m scripts/run_generative.py \
     --dataset_name $DATASET \
+    --lang_code deu_Latn \
     --split $SPLIT \
     --model "meta-llama/Meta-Llama-3-70B-Instruct" \
     --num_gpus 4 \
