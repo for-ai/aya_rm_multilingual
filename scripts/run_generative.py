@@ -19,9 +19,9 @@ Updated to accommodate custom preference datasets
 
 # run a generative RM. For now, this requires openai and anthropic to be installed
 # Examples:
-# python scripts/run_generative.py --dataset_name <DATASET_NAME> --model gpt-3.5-turbo
-# python scripts/run_generative.py --dataset_name <DATASET_NAME> --model=claude-3-haiku-20240307
-# python scripts/run_generative.py --dataset_name <DATASET_NAME> --model=CohereForAI/c4ai-command-r-v01 --num_gpus 2 --force_local
+# python scripts/run_generative.py --dataset_name <DATASET_NAME> --lang_code <LANG> --model gpt-3.5-turbo
+# python scripts/run_generative.py --dataset_name <DATASET_NAME> --lang_code <LANG> --model=claude-3-haiku-20240307
+# python scripts/run_generative.py --dataset_name <DATASET_NAME> --lang_code <LANG> --model=CohereForAI/c4ai-command-r-v01 --num_gpus 2 --force_local
 
 # note: for none API models, this script uses vllm
 # pip install vllm
@@ -38,12 +38,16 @@ import numpy as np
 from datasets import load_dataset
 from dotenv import load_dotenv
 from fastchat.conversation import get_conv_template
+from rewardbench.constants import EXAMPLE_COUNTS, SUBSET_MAPPING
+from rewardbench.utils import calculate_scores_per_section
 from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
-from scripts.generative import ANTHROPIC_MODEL_LIST, API_MODEL_LIST, GEMINI_MODEL_LIST
+from scripts.generative import ANTHROPIC_MODEL_LIST, API_MODEL_LIST
+from scripts.generative import COHERE_MODEL_LIST, GEMINI_MODEL_LIST
 from scripts.generative import OPENAI_MODEL_LIST, format_judge_answers
 from scripts.generative import process_judgement, run_judge_pair
+from scripts.utils import load_multilingual_eval_dataset
 
 load_dotenv(verbose=True)
 
@@ -60,11 +64,12 @@ def get_args():
     parser = argparse.ArgumentParser()
     # fmt: off
     parser.add_argument("--dataset_name", type=str, required=True, help="name of dataset to test on")
+    parser.add_argument("--lang_code", type=str, default=None, help="the language code to use")
     parser.add_argument("--split", default="test", type=str, required=True, help="dataset split to evaluate")
     parser.add_argument("--model", type=str, nargs="+", required=True, help="name of model to use")
     parser.add_argument("--output_dir", type=str, required=True, help="directory to save the results")
     parser.add_argument("--chat_template", type=str, default=None, help="fastchat chat template (optional)")
-    parser.add_argument("--include_languages", nargs=2, default=None, required=False, help="include language in the results (2-tuple)")
+    parser.add_argument("--include_languages", nargs=2, default=None, required=False, help="include language in the prompt (2-tuple)")
     parser.add_argument("--trust_remote_code", action="store_true", default=False, help="directly load model instead of pipeline")
     parser.add_argument("--num_gpus", type=int, default=1, help="number of gpus to use, for multi-node vllm")
     parser.add_argument("--debug", action="store_true", help="run on debug mode (show additional info, etc.)")
@@ -142,9 +147,20 @@ def main():
     # Load dataset
     ############################
     logger.info("*** Load dataset ***")
-    dataset = load_dataset(args.dataset_name, split=args.split)
-    # Rename columns for compatibility with existing API
-    dataset = dataset.rename_columns({"chosen": "text_chosen", "rejected": "text_rejected"})
+    dataset, subsets = load_multilingual_eval_dataset(
+        dataset_name=args.dataset_name,
+        lang_code=args.lang_code,
+        conv=get_conv_template("raw"),  # not used in this script (handled later)
+        custom_dialogue_formatting=True,  # handle formatting later
+        tokenizer=None,
+        logger=logger,
+        keep_columns=["text_chosen", "text_rejected", "id"],
+        max_turns=4,
+    )
+
+    # copy id for saving, then remove
+    ids = dataset["id"]
+    dataset = dataset.remove_columns("id")
 
     if args.sample:
         logger.debug(f"Running on first {args.sample} examples")
@@ -164,7 +180,7 @@ def main():
 
         def get_judgement(batch, debug=args.debug):
             mult_turn = True if len(batch["text_chosen"]) > 2 else False
-            prompt = batch["prompt"]
+            prompt = batch["text_chosen"][0]["content"]
             answer_a = batch["text_chosen"]
             answer_b = batch["text_rejected"]
 
@@ -235,7 +251,7 @@ def main():
         def format_judgements(batch, optional_chat_template=None):
             # TODO expand this to include fastchat chat templates if needed
             mult_turn = True if len(batch["text_chosen"]) > 2 else False
-            prompt = batch["prompt"]
+            prompt = batch["text_chosen"][0]["content"]
             answer_a = batch["text_chosen"]
             answer_b = batch["text_rejected"]
 
@@ -302,6 +318,10 @@ def main():
     # add column for results for easy printing
     out_dataset = dataset.add_column("results", results)
 
+    # add subsets back (removed so it's not handled by cuda)
+    out_dataset = out_dataset.add_column("subset", subsets)
+    out_dataset = out_dataset.add_column("id", ids)
+
     # model name concat if list
     if isinstance(args.model, list):
         model_name = "_".join(args.model)
@@ -315,6 +335,27 @@ def main():
         model_name = "anthropic/" + model_name
     elif args.model in GEMINI_MODEL_LIST:
         model_name = "google/" + model_name
+    elif args.model in COHERE_MODEL_LIST:
+        model_name = "cohere/" + model_name
+
+    # get core dataset
+    results_grouped = {}
+    results_grouped["model"] = model_name
+    results_grouped["model_type"] = model_type
+    results_grouped["chat_template"] = args.chat_template
+
+    # print per subset and log into results_grouped file
+    present_subsets = np.unique(subsets)
+    for subset in present_subsets:
+        subset_dataset = out_dataset.filter(lambda example: example["subset"] == subset)
+        num_correct = sum(subset_dataset["results"])
+        num_total = len(subset_dataset["results"])
+        print(f"{subset}: {num_correct}/{num_total} ({num_correct/num_total})")
+        results_grouped[subset] = num_correct / num_total
+
+    # log leaderboard aggregated results
+    results_leaderboard = calculate_scores_per_section(EXAMPLE_COUNTS, SUBSET_MAPPING, results_grouped)
+    print(results_leaderboard)
 
     # compute scores
     num_correct = sum(out_dataset["results"])
@@ -332,14 +373,19 @@ def main():
             "num_total": num_total,
             "results": results,
         },
+        "leaderboard": results_leaderboard,
+        "subset": results_grouped,
     }
 
     output_dir = Path(args.output_dir)
-    file_path = output_dir / f"{model_name.replace('/', '___')}.json"
-    with open(file_path, "w") as f:
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    output_file = model_name.replace("/", "___") + "-" + args.lang_code + ".json"
+    output_path = output_dir / output_file
+    with open(output_path, "w") as f:
         json.dump(results_dict, f, indent=4)
 
-    logger.info(f"Saved results to {file_path}")
+    logger.info(f"Saved results to {output_path}")
 
 
 if __name__ == "__main__":

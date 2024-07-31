@@ -77,6 +77,8 @@ COHERE_MODEL_LIST = (
     "command-nightly",
     "command-light",
     "command-light-nightly",
+    "c4ai-aya-23-35b",
+    "c4ai-aya-23-8b",
 )
 
 API_MODEL_LIST = OPENAI_MODEL_LIST + ANTHROPIC_MODEL_LIST + TOGETHER_MODEL_LIST + COHERE_MODEL_LIST
@@ -293,7 +295,6 @@ def format_judge_answers(
                 **kwargs,
             )
     else:
-        print("Using the MT-Bench prompts")
         if multi_turn:
             system_prompt = (
                 MTBENCH_MULTI_V2["system_prompt"]
