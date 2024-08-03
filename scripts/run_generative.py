@@ -266,7 +266,7 @@ def main():
                 answer_b,
                 multi_turn=mult_turn,
                 model_modifier=model_modifier,
-                include_langs=args.include_langs,
+                include_langs=args.include_languages,
             )
 
             if optional_chat_template is not None:
