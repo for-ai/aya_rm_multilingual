@@ -266,7 +266,7 @@ def main():
                 answer_b,
                 multi_turn=mult_turn,
                 model_modifier=model_modifier,
-                include_langs=args.include_langs,
+                include_langs=args.include_languages,
             )
 
             if optional_chat_template is not None:
@@ -302,7 +302,12 @@ def main():
         winners = [process_judgement(a, is_prometheus=is_prometheus) for a in answers]
 
         def process_shuffled(win, shuffle):
-            winner_text, loser_text = "B", "A" if shuffle else "A", "B"
+            if shuffle:
+                winner_text = "B"
+                loser_text = "A"
+            else:
+                winner_text = "A"
+                loser_text = "B"
             if win == winner_text:
                 return 1
             elif win == loser_text:
