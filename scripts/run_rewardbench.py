@@ -157,6 +157,7 @@ def main():
     else:
         dataset, subsets = load_multilingual_eval_dataset(
             dataset_name=args.dataset_name,
+            conv=conv,
             lang_code=args.lang_code,
             custom_dialogue_formatting=False,
             tokenizer=tokenizer,
