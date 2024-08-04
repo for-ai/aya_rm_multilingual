@@ -22,6 +22,7 @@ import json
 import logging
 import os
 import sys
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -43,7 +44,7 @@ def main():
     parser = argparse.ArgumentParser(description="Evaluate a reward model.")
 
     # fmt: off
-    parser.add_argument("--dataset", type=str, default="aya-rm-multilingual/multilingual-reward-bench", help="the dataset to evaluate on")
+    parser.add_argument("--dataset_name", type=str, default="aya-rm-multilingual/multilingual-reward-bench", help="the dataset to evaluate on")
     parser.add_argument("--lang_code", type=str, default=None, help="the language code to use")
     parser.add_argument("--split", type=str, default="filtered", help="the split to evaluate on")
     parser.add_argument("--model", type=str, required=True, help="the model to evaluate")
@@ -143,7 +144,7 @@ def main():
     logger.info("*** Load dataset ***")
     tokenizer_path = args.tokenizer if args.tokenizer else args.model
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, trust_remote_code=args.trust_remote_code)
-    if args.dataset == "allenai/reward-bench":
+    if args.dataset_name == "allenai/reward-bench":
         logger.info("Running core eval dataset.")
         # primary set compiles slightly more information
         dataset, subsets = load_eval_dataset(
@@ -157,6 +158,7 @@ def main():
     else:
         dataset, subsets = load_multilingual_eval_dataset(
             dataset_name=args.dataset_name,
+            conv=conv,
             lang_code=args.lang_code,
             custom_dialogue_formatting=False,
             tokenizer=tokenizer,
@@ -327,7 +329,7 @@ def main():
     logger.info(f"Mean rejected: {np.mean(scores_rejected)}, std: {np.std(scores_rejected)}")
     logger.info(f"Mean margin: {np.mean(np.array(scores_chosen) - np.array(scores_rejected))}")
 
-    if "reward-bench" in args.dataset:
+    if "reward-bench" in args.dataset_name:
         logger.info("Computing grouped results")
         out_dataset = dataset.add_column("results", results)
         if args.debug:
@@ -351,15 +353,12 @@ def main():
     # compile scores
     ############################
     # save score in json to args.output_dir + args.model + ".json"
-    output_path = args.output_dir + args.model + args.lang_code + ".json"
-    dirname = os.path.dirname(output_path)
-    os.makedirs(dirname, exist_ok=True)
+    output_dir = Path(args.output_dir)
+    output_path = output_dir / f"{args.model}-{args.lang_code}.json"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # remove old data
-    if os.path.exists(output_path):
-        os.remove(output_path)
-
-    with open(output_path, "w") as f:
+    logger.info(f"Saving to {output_path}")
+    with output_path.open("w") as f:
         json.dump(
             {
                 "accuracy": accuracy,
@@ -368,22 +367,17 @@ def main():
                 "ref_model": args.ref_model,
                 "tokenizer": tokenizer_path,
                 "chat_template": args.chat_template,
-                "extra_results": results_grouped if "reward-bench" in args.dataset else None,
+                "extra_results": results_grouped if "reward-bench" in args.dataset_name else None,
             },
             f,
         )
 
     # if save_all is passed, save a large jsonl with all scores_chosen, scores_rejected
     if args.save_all:
-        output_path = args.output_dir + args.model + "-" + args.lang_code + "-all.jsonl"
-        dirname = os.path.dirname(output_path)
-        os.makedirs(dirname, exist_ok=True)
+        output_path = output_dir / f"{args.model}-{args.lang_code}-all.jsonl"
+        logger.info(f"Saving 'all' results to {output_path}")
 
-        # remove old data
-        if os.path.exists(output_path):
-            os.remove(output_path)
-
-        with open(output_path, "w") as f:
+        with output_path.open("w") as f:
             for chosen, rejected in zip(scores_chosen, scores_rejected):
                 f.write(json.dumps({"chosen": scores_chosen, "rejected": scores_rejected}) + "\n")
 
