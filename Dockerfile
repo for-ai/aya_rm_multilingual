@@ -9,6 +9,7 @@ WORKDIR /stage
 RUN apt-get update && apt-get install -y --no-install-recommends git
 COPY requirements.txt /stage
 RUN pip install -r requirements.txt
+RUN pip install transformers==4.43.0
 
 # Copy all files
 COPY . /stage
