@@ -22,6 +22,7 @@ import json
 import logging
 import os
 import sys
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -352,15 +353,12 @@ def main():
     # compile scores
     ############################
     # save score in json to args.output_dir + args.model + ".json"
-    output_path = args.output_dir + args.model + args.lang_code + ".json"
-    dirname = os.path.dirname(output_path)
-    os.makedirs(dirname, exist_ok=True)
+    output_dir = Path(args.output_dir)
+    output_path = output_dir / f"{args.model}-{args.lang_code}.json"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # remove old data
-    if os.path.exists(output_path):
-        os.remove(output_path)
-
-    with open(output_path, "w") as f:
+    logger.info(f"Saving to {output_path}")
+    with output_path.open("w") as f:
         json.dump(
             {
                 "accuracy": accuracy,
@@ -376,15 +374,10 @@ def main():
 
     # if save_all is passed, save a large jsonl with all scores_chosen, scores_rejected
     if args.save_all:
-        output_path = args.output_dir + args.model + "-" + args.lang_code + "-all.jsonl"
-        dirname = os.path.dirname(output_path)
-        os.makedirs(dirname, exist_ok=True)
+        output_path = output_dir / f"{args.model}-{args.lang_code}-all.jsonl"
+        logger.info(f"Saving 'all' results to {output_path}")
 
-        # remove old data
-        if os.path.exists(output_path):
-            os.remove(output_path)
-
-        with open(output_path, "w") as f:
+        with output_path.open("w") as f:
             for chosen, rejected in zip(scores_chosen, scores_rejected):
                 f.write(json.dumps({"chosen": scores_chosen, "rejected": scores_rejected}) + "\n")
 
