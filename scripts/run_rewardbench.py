@@ -43,7 +43,7 @@ def main():
     parser = argparse.ArgumentParser(description="Evaluate a reward model.")
 
     # fmt: off
-    parser.add_argument("--dataset", type=str, default="aya-rm-multilingual/multilingual-reward-bench", help="the dataset to evaluate on")
+    parser.add_argument("--dataset_name", type=str, default="aya-rm-multilingual/multilingual-reward-bench", help="the dataset to evaluate on")
     parser.add_argument("--lang_code", type=str, default=None, help="the language code to use")
     parser.add_argument("--split", type=str, default="filtered", help="the split to evaluate on")
     parser.add_argument("--model", type=str, required=True, help="the model to evaluate")
@@ -143,7 +143,7 @@ def main():
     logger.info("*** Load dataset ***")
     tokenizer_path = args.tokenizer if args.tokenizer else args.model
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, trust_remote_code=args.trust_remote_code)
-    if args.dataset == "allenai/reward-bench":
+    if args.dataset_name == "allenai/reward-bench":
         logger.info("Running core eval dataset.")
         # primary set compiles slightly more information
         dataset, subsets = load_eval_dataset(
@@ -327,7 +327,7 @@ def main():
     logger.info(f"Mean rejected: {np.mean(scores_rejected)}, std: {np.std(scores_rejected)}")
     logger.info(f"Mean margin: {np.mean(np.array(scores_chosen) - np.array(scores_rejected))}")
 
-    if "reward-bench" in args.dataset:
+    if "reward-bench" in args.dataset_name:
         logger.info("Computing grouped results")
         out_dataset = dataset.add_column("results", results)
         if args.debug:
@@ -368,7 +368,7 @@ def main():
                 "ref_model": args.ref_model,
                 "tokenizer": tokenizer_path,
                 "chat_template": args.chat_template,
-                "extra_results": results_grouped if "reward-bench" in args.dataset else None,
+                "extra_results": results_grouped if "reward-bench" in args.dataset_name else None,
             },
             f,
         )
