@@ -32,7 +32,6 @@ from accelerate.logging import get_logger
 from datasets import load_dataset
 from rewardbench import DPO_MODEL_CONFIG, REWARD_MODEL_CONFIG
 from rewardbench import check_tokenizer_chat_template, load_eval_dataset
-from rewardbench import torch_dtype_mapping
 from rewardbench.constants import EXAMPLE_COUNTS, SUBSET_MAPPING
 from rewardbench.utils import calculate_scores_per_section
 from tqdm import tqdm
@@ -42,6 +41,21 @@ from scripts.utils import load_multilingual_eval_dataset
 
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
+
+
+def torch_dtype_mapping(dtype_str):
+    """
+    Helper function for argparse to map string to torch dtype.
+    """
+    dtype_map = {
+        "float16": torch.float16,
+        "bfloat16": torch.bfloat16,
+        "float32": torch.float32,
+        "float64": torch.float64,
+    }
+    if dtype_str not in dtype_map:
+        raise argparse.ArgumentTypeError(f"Invalid torch dtype: {dtype_str}")
+    return dtype_map[dtype_str]
 
 
 def main():
