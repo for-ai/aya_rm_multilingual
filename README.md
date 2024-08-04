@@ -27,19 +27,19 @@ export HF_TOKEN=<your huggingface token>
 ```
 
 You can find all runnable experiments in the `scripts` directory.
-Their filename should explicitly tell you their purpose. 
+Their filename should explicitly tell you their purpose.
 
 ### Running translation
 
- We currently use [`facebook/nllb-200-3.3B`](https://huggingface.co/facebook/nllb-200-3.3B) for translation. First install sentence splitter using: 
+We currently use [`facebook/nllb-200-3.3B`](https://huggingface.co/facebook/nllb-200-3.3B) for translation. First install sentence splitter using:
 
- ```
- pip install git+https://github.com/mediacloud/sentence-splitter.git
- ```
+```
+pip install git+https://github.com/mediacloud/sentence-splitter.git
+```
 
- To translate reward bench into [22 Aya languages](https://arxiv.org/abs/2405.15032) run the following:
+To translate reward bench into [22 Aya languages](https://arxiv.org/abs/2405.15032) run the following:
 
-```  
+```
 cd scripts
 bash run_nllb.sh
 ```
@@ -56,14 +56,14 @@ For example, if we want to get the reward score of the UltraRM-13b reward model 
 python -m scripts.run_rewardbench \
     --model openbmb/UltraRM-13b \
     --chat_template openbmb \
-    --dataset $DATASET \
+    --dataset_name $DATASET \
     --lang_code $LANG_CODE \
     --split "filtered" \
     --output_dir $OUTDIR \
     --batch_size 8 \
     --trust_remote_code \
     --force_truncation \
-    --save_all 
+    --save_all
 ```
 
 The evaluation parameters can be found in the [allenai/reward-bench](https://github.com/allenai/reward-bench/blob/main/scripts/configs/eval_configs.yaml) repository.
@@ -97,10 +97,10 @@ python -m scripts.run_generative \
     --model gpt-4-turbo-2024-04-09 \
     --split "filtered" \
     --lang_code $LANG_CODE \
-    --output_dir $OUTDIR 
+    --output_dir $OUTDIR
 ```
 
-You can also run open-source LMs in a generative fashion. 
+You can also run open-source LMs in a generative fashion.
 The inference is then routed through [vLLM](https://github.com/vllm-project/vllm).
 Here's an example using `meta-llama/Meta-Llama-3-70B-Instruct`:
 
@@ -127,7 +127,6 @@ python -m scripts/run_generative.py \
 +   --include_languages German English
     --output_dir $OUTDIR
 ```
-
 
 ## Testing and Development
 
