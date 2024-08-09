@@ -140,6 +140,8 @@ def main():
         is_prometheus = True
     elif "gemini" in args.model:
         model_modifier = "gemini"
+    elif "Llama-3.1" in args.model:
+        model_modifier = "llama-3.1"
     else:
         model_modifier = None
 
