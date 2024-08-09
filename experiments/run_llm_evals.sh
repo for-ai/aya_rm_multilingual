@@ -72,5 +72,5 @@ for lang_code in "${!languages[@]}"; do
     --output_dir "$OUTDIR" \
     --include_languages "${languages[$lang_code]}" "English" \
     --trust_remote_code \
-    --save_all
+    --force_local
 done
