@@ -144,6 +144,10 @@ def main():
         model_modifier = "llama-3.1"
     elif "gemma" in args.model:
         model_modifier = "gemma"
+    elif "glm-4" in  args.model:
+        model_modifier = "glm-4"
+    elif "Qwen2" in  args.model:
+        model_modifier = "qwen-2"
     else:
         model_modifier = None
 
