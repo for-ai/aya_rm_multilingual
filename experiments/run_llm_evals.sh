@@ -64,7 +64,7 @@ declare -A languages=(
 )
 
 for lang_code in "${!languages[@]}"; do
-  python3 scripts/run_generative.py \
+  python3 -m scripts.run_generative \
     --model "$MODEL" \
     --dataset "$DATASET" \
     --lang_code "$lang_code" \
