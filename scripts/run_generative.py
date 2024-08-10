@@ -142,6 +142,8 @@ def main():
         model_modifier = "gemini"
     elif "Llama-3.1" in args.model:
         model_modifier = "llama-3.1"
+    elif "gemma" in args.model:
+        model_modifier = "gemma"
     else:
         model_modifier = None
 
@@ -277,6 +279,12 @@ def main():
                 optional_chat_template.append_message(optional_chat_template.roles[0], user_prompt)
                 optional_chat_template.append_message(optional_chat_template.roles[1], None)
                 prompt = optional_chat_template.get_prompt()
+            elif model_modifier == "gemma":
+                # Gemma models don't support `system prompt`.
+                messages = [
+                    {"role": "user", "content": system_prompt + "\n\n" + user_prompt},
+                ]
+                prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
             elif model_modifier:
                 messages = [
                     {"role": "system", "content": system_prompt},
