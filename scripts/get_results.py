@@ -16,7 +16,6 @@ def get_args():
     parser = argparse.ArgumentParser(description="Get evaluation results")
     parser.add_argument("--dataset", type=str, default="aya-rm-multilingual/eval-results", help="HuggingFace dataset that stores the eval results.")
     parser.add_argument("--langs", nargs="*", required=False, type=str, help="If set, will only show the results for the particular language codes provided.")
-    parser.add_argument("--output_path", type=Path, required=False, help="Output path to save the JSON results.")
     parser.add_argument("--show_subsets", action="store_true", help="If set, will show subset results instead of per-category results.")
     # fmt: on
     return parser.parse_args()
@@ -24,9 +23,6 @@ def get_args():
 
 def main():
     args = get_args()
-    if args.output_path:
-        args.output_path.parents[0].mkdir(parents=True, exist_ok=True)
-
     dataset_dir = Path(snapshot_download(args.dataset, repo_type="dataset"))
     lang_folders = [d for d in dataset_dir.iterdir() if d.is_dir()]
 
