@@ -82,7 +82,7 @@ declare -A languages=(
 
 # Loop through each language and run the command
 for lang_code in "${!languages[@]}"; do
-  python3 scripts/run_rewardbench.py \
+  python3 -m scripts.run_rewardbench \
     --model "$MODEL" \
     --chat_template "$CHAT_TEMPLATE" \
     --dataset "$DATASET" \
