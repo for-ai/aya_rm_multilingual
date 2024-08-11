@@ -13,3 +13,4 @@ sentence-splitter==1.4
 pandas
 huggingface_hub
 tabulate
+numpy
