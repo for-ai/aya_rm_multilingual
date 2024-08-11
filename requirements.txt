@@ -10,3 +10,6 @@ cohere==5.6.1
 git+https://github.com/lm-sys/FastChat.git@92a6d1fcd69a88ea169c0b01065ce44f1e690a2c
 python-dotenv
 sentence-splitter==1.4
+pandas
+huggingface_hub
+tabulate
