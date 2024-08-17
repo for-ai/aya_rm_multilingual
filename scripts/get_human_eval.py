@@ -1,6 +1,8 @@
 import argparse
 from pathlib import Path
 
+import pandas as pd
+
 
 def get_args():
     # fmt: off
@@ -14,10 +16,9 @@ def get_args():
 def main():
     args = get_args()
 
-    # TODO: report annotator agreement with gold labels (accuracy?)
-
-    # TODO: report annotator agreement across different subsets (and weight them based on the frequency of the subsets.)
-    pass
+    reference = pd.read_csv(args.reference_path)
+    annotations = pd.read_csv(args.annotation_path)
+    breakpoint()
 
 
 if __name__ == "__main__":
