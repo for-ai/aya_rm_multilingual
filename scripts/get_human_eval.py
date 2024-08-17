@@ -41,7 +41,8 @@ def main():
         predict_vector=df["human_preference"].to_list(),
     )
     print(
-        f" Overall accuracy: {cm.Overall_ACC}\n",
+        f"*** Overall metrics ***\n",
+        f"Accuracy: {cm.Overall_ACC}\n",
         f"F1-score: {cm.F1_Macro}\n",
         f"Per-class accuracy: {cm.ACC}\n",
         f"Cohen's Kappa: {cm.Kappa}\n",
