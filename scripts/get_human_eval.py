@@ -42,6 +42,7 @@ def main():
     )
     print(
         f" Overall accuracy: {cm.Overall_ACC}\n",
+        f"F1-score: {cm.F1_Macro}\n",
         f"Per-class accuracy: {cm.ACC}\n",
         f"Cohen's Kappa: {cm.Kappa}\n",
         f"Krippendorff Alpha: {cm.Alpha}\n",
