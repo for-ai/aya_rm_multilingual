@@ -17,13 +17,14 @@ def get_args():
     parser.add_argument("--dataset", type=str, default="aya-rm-multilingual/eval-results", help="HuggingFace dataset that stores the eval results.")
     parser.add_argument("--langs", nargs="*", required=False, type=str, help="If set, will only show the results for the particular language codes provided.")
     parser.add_argument("--show_subsets", action="store_true", help="If set, will show subset results instead of per-category results.")
+    parser.add_argument("--force_download", action="store_true", help="If set, will redownload the dataset.")
     # fmt: on
     return parser.parse_args()
 
 
 def main():
     args = get_args()
-    dataset_dir = Path(snapshot_download(args.dataset, repo_type="dataset"))
+    dataset_dir = Path(snapshot_download(args.dataset, repo_type="dataset", force_download=args.force_download))
     lang_folders = [d for d in dataset_dir.iterdir() if d.is_dir()]
 
     if args.langs:
