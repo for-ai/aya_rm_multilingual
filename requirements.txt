@@ -14,4 +14,3 @@ pandas
 huggingface_hub
 tabulate
 numpy
-pycm
