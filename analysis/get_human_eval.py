@@ -1,9 +1,8 @@
 import argparse
-from pathlib import Path
 import logging
+from pathlib import Path
 
 import pandas as pd
-
 
 logging.basicConfig(level=logging.INFO)
 
