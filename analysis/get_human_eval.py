@@ -1,10 +1,8 @@
 import argparse
-from pathlib import Path
 import logging
+from pathlib import Path
 
 import pandas as pd
-from pycm import ConfusionMatrix
-
 
 logging.basicConfig(level=logging.INFO)
 
@@ -60,7 +58,6 @@ def main():
     disagree_human_vs_llm = subset_df[subset_df["human_preference"] != subset_df["llm_preference"]]
     disagree_human_vs_gold.to_csv(f"{lang_code}-disagreement-human-vs-gold.csv", index=False)
     disagree_human_vs_llm.to_csv(f"{lang_code}-disagreement-human-vs-llm.csv", index=False)
-
 
 
 if __name__ == "__main__":
