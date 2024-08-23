@@ -7,9 +7,11 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from huggingface_hub import snapshot_download
 
-from analysis.plot_utils import get_scores
+from analysis.plot_utils import get_scores, PLOT_PARAMS
 
 logging.basicConfig(level=logging.INFO)
+
+plt.rcParams.update(PLOT_PARAMS)
 
 
 def get_args():
@@ -24,12 +26,37 @@ def get_args():
 
 def main():
     args = get_args()
+    output_dir = Path(args.output_dir)
     leaderboard_df = get_leaderboard(dataset=args.dataset, force_download=args.force_download)
 
     # Get average of non eng_Latn
     leaderboard_df["Avg"] = leaderboard_df.drop(["eng_Latn", "Type"], axis=1).mean(axis=1, skipna=False)
     leaderboard_df["Std"] = leaderboard_df.drop(["eng_Latn", "Type"], axis=1).std(axis=1, skipna=False)
     leaderboard_df = leaderboard_df.sort_values(by=["Type", "Avg"], ascending=False)
+
+    # Save per model type
+    model_types = leaderboard_df["Type"].unique().tolist()
+    for model_type in model_types:
+        model_type_df = leaderboard_df[leaderboard_df["Type"] == model_type]
+        data = model_type_df.drop(["eng_Latn", "Type", "Std"], axis=1)
+        avg_col = "Avg"
+        data = data[[avg_col] + [c for c in data.columns if c != avg_col]]
+        data = data.dropna()
+
+        if "Generative" in model_type:
+            figsize = (24, 8)
+        else:
+            figsize = (24, 3)
+
+        fig, ax = plt.subplots(figsize=figsize)
+        sns.heatmap(data, annot=True, cmap="BuPu", ax=ax, annot_kws={"size": 14})
+        ax.xaxis.tick_top()
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="left", fontsize=16)
+        ax.set_yticklabels(ax.get_yticklabels(), fontsize=16)
+        fig.tight_layout()
+        fig.savefig(output_dir / f"leaderboard-{model_type.replace(' ', '_')}.png", dpi=120)
+        # breakpoint()
+
     # overall_non_eng = pd.concat(
     #     [
     #         avg.rename("Avg_Multilingual"),
@@ -39,7 +66,6 @@ def main():
     #     axis=1,
     # )
     # .sort_values(by=["Type", "Avg_Multilingual"], ascending=False)
-    breakpoint()
 
 
 def get_leaderboard(dataset: str, force_download: bool) -> "pd.DataFrame":

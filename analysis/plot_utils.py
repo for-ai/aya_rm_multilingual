@@ -8,6 +8,14 @@ from rewardbench.constants import EXAMPLE_COUNTS, SUBSET_MAPPING
 logging.basicConfig(level=logging.INFO)
 
 
+PLOT_PARAMS = {
+    "text.usetex": True,
+    "xtick.labelsize": 18,
+    "ytick.labelsize": 18,
+    "legend.fontsize": 18,
+}
+
+
 def get_scores(lang_dir: Path) -> List[Dict[str, Any]]:
     """Get scores for a single language, returns the category scores and the per-subset scores per model"""
     files = [file for file in lang_dir.iterdir() if file.suffix == ".json"]
