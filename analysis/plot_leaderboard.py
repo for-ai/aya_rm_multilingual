@@ -55,17 +55,6 @@ def main():
         ax.set_yticklabels(ax.get_yticklabels(), fontsize=16)
         fig.tight_layout()
         fig.savefig(output_dir / f"leaderboard-{model_type.replace(' ', '_')}.png", dpi=120)
-        # breakpoint()
-
-    # overall_non_eng = pd.concat(
-    #     [
-    #         avg.rename("Avg_Multilingual"),
-    #         std.rename("Std_Multilingual"),
-    #         leaderboard_df["Type"],
-    #     ],
-    #     axis=1,
-    # )
-    # .sort_values(by=["Type", "Avg_Multilingual"], ascending=False)
 
 
 def get_leaderboard(dataset: str, force_download: bool) -> "pd.DataFrame":
