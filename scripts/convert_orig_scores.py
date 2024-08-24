@@ -16,8 +16,6 @@ def get_args():
     # fmt: off
     parser = argparse.ArgumentParser(description="Convert RewardBench scores to our formatting")
     parser.add_argument("--model", required=True, help="JSON URL to convert.")
-    parser.add_argument("--output_file", required=True, help="Filepath to save the updated JSON file.")
-    # parser.add_argument("--dataset_name", default="allenai/reward-bench-results", help="HuggingFace dataset to obtain datasets from.")
     # fmt: on
     return parser.parse_args()
 
@@ -32,7 +30,6 @@ def main():
         raise ValueError("Cannot parse response")
 
     results_leaderboard = calculate_scores_per_section(EXAMPLE_COUNTS, SUBSET_MAPPING, data)
-    breakpoint()
 
     dataset_name = "allenai/reward-bench"
     if data["model_type"] == "Generative RM":
@@ -58,6 +55,8 @@ def main():
     output_file = f"{data['model'].split('/')[1]}-eng_Latn.json"
     with open(output_file, "w") as f:
         json.dump(results_dict, f)
+
+    logging.info(f"Saved to {output_file}")
 
 
 if __name__ == "__main__":
