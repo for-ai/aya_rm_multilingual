@@ -43,7 +43,9 @@ def get_scores(lang_dir: Path) -> List[Dict[str, Any]]:
                 {
                     "model": result["subset"].pop("model"),
                     "model_type": result["subset"].pop("model_type"),
-                    "chat_template": result["subset"].pop("chat_template"),
+                    "chat_template": (
+                        result["subset"].pop("chat_template") if "chat_template" in result["subset"] else None
+                    ),
                     # The rewardbench score is the average of the weighted average of the four category scores
                     "score": sum(result["leaderboard"].values()) / len(result["leaderboard"]),
                     "category_scores": result["leaderboard"],
