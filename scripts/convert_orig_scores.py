@@ -36,7 +36,7 @@ def main():
         results_dict = {
             "dataset": dataset_name,
             "model": data["model"],
-            "chat_template": data["chat_template"],
+            "chat_template": None if "chat_template" not in data else data["chat_template"],
             "scores": {},  # can't compute now
             "leaderboard": results_leaderboard,
             "subset": data,
