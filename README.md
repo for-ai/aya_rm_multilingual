@@ -14,9 +14,9 @@ This project is part of [Cohere for AI's Expedition Aya 2024](https://sites.goog
 <b>📄 Paper (coming soon!)</b>
 </p>
 
-## Team Members
+## News
 
-The team is composed of Srishti Gureja (@srishti-git1110), Shayekh Bin Islam, (@ShayekhBinIslam), Rishabh Maheshwary (@RishabhMaheshwary), Drishti Sushma (@DrishtiShrrrma), Gusti Winata (@sanggusti), and Lj Miranda (@ljvmiranda921).
+- [2024-08-28] We won **Silver Prize** in Expedition Aya 2024! We're also releasing the v1 of the multilingual RewardBench on [HuggingFace](https://huggingface.co/datasets/aya-rm-multilingual/multilingual-reward-bench).
 
 ## Setup and installation
 
@@ -54,3 +54,7 @@ You can automatically format your code by running:
 ```
 make style
 ```
+
+## Team Members
+
+The team is composed of Srishti Gureja ([@srishti-git1110](https://github.com/srishti-git1110)), Shayekh Bin Islam, ([@ShayekhBinIslam](https://github.com/ShayekhBinIslam)), Rishabh Maheshwary ([@RishabhMaheshwary](https://github.com/RishabhMaheshwary)), Drishti Sushma ([@DrishtiShrrrma](https://github.com/DrishtiShrrrma)), Gusti Winata ([@sanggusti](https://github.com/sanggusti)), and Lj Miranda ([@ljvmiranda921](https://github.com/ljvmiranda921)).
