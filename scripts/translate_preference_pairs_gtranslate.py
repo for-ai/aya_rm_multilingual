@@ -162,3 +162,5 @@ if __name__ == "__main__":
         args.output_dir,
         args.batch_size,
     )
+# Example Command:
+# python translate_preference_pairs_gtranslate.py --dataset_name allenai/reward-bench --target_language ar --columns_to_translate prompt chosen rejected --output_dir translated_results
