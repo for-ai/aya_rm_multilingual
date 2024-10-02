@@ -27,6 +27,11 @@ def get_args():
 
 
 def main():
+    logging.warning(
+        "This is a deprecated script. You can still run this to get the most up-to-date leaderboard results."
+        "However, it is preferable and way easier to use the output CSVs from the earlier runs and start from there."
+        "I highly recommend checking the analysis.plot_figures script for more information."
+    )
     args = get_args()
     output_dir = Path(args.output_dir)
     if not output_dir.exists():
@@ -83,7 +88,10 @@ def main():
         fig.tight_layout()
         output_file = output_dir / f"leaderboard-{model_type.replace(' ', '_')}.png"
         csv_output_file = output_dir / f"leaderboard-{model_type.replace(' ', '_')}.csv"
-        data.to_csv(csv_output_file)
+        data_to_cache = data.copy(deep=True)
+        data_to_cache["eng_Latn"] = model_type_df["eng_Latn"]
+        data_to_cache = data_to_cache.rename(columns={"Avg": "Avg_Multilingual"})
+        data_to_cache.to_csv(csv_output_file)
         fig.savefig(output_file, dpi=120)
         logging.info(f"Saved to {output_file}")
 
