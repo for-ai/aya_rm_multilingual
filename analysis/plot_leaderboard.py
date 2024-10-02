@@ -19,7 +19,7 @@ def get_args():
     # fmt: off
     parser = argparse.ArgumentParser()
     parser.add_argument("--output_dir", type=Path, help="Directory to save the output plots."),
-    parser.add_argument("--dataset", type=str, default="aya-rm-multilingual/eval-results", help="HuggingFace dataset that stores the eval results.")
+    parser.add_argument("--dataset", type=str, default="aya-rm-multilingual/eval-results-gtranslate-v2", help="HuggingFace dataset that stores the eval results.")
     parser.add_argument("--force_download", action="store_true", help="If set, will redownload the dataset.")
     # fmt: on
     return parser.parse_args()
