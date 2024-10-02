@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 PLOT_PARAMS = {
-    "text.usetex": True,
+    "text.usetex": False,
     "xtick.labelsize": 18,
     "ytick.labelsize": 18,
     "legend.fontsize": 18,
@@ -48,6 +48,19 @@ def get_scores(lang_dir: Path) -> List[Dict[str, Any]]:
                     "score": sum(result["leaderboard"].values()) / len(result["leaderboard"]),
                     "category_scores": result["leaderboard"],
                     "subset_scores": result["subset"],
+                }
+            )
+        elif result.get("ref_model"):
+            # Most likely DPO:
+            category_scores = _compute_category_scores(result["extra_results"])
+            model_scores.append(
+                {
+                    "model": result["model"],
+                    "model_type": "DPO",
+                    "chat_template": result["chat_template"],
+                    "score": sum(category_scores.values()) / len(category_scores),
+                    "category_scores": category_scores,
+                    "subset_scores": result["extra_results"],
                 }
             )
         else:
