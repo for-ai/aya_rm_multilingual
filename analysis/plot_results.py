@@ -6,9 +6,8 @@ from typing import Optional
 
 import pandas as pd
 import seaborn as sns
-import numpy as np
-import matplotlib.patches as patches
 import matplotlib.pyplot as plt
+from adjustText import adjust_text
 
 FONT_SIZES = {"small": 12, "medium": 16, "large": 18}
 
@@ -42,11 +41,10 @@ def get_args():
 
     parser_main_results = subparsers.add_parser("main_heatmap", help="Plot results as a heatmap.", parents=[shared_args])
     parser_main_results.add_argument("--input_path", type=Path, required=True, help="Path to the results file.")
-    parser_main_results.add_argument("--top_ten_only", action="store_true", help="If set, will only show the top-10 of all models.")
-    parser_main_results.add_argument("--print_latex", action="store_true", help="If set, print LaTeX table.")
 
     parser_eng_drop = subparsers.add_parser("eng_drop_line", help="Plot english drop as a line chart.", parents=[shared_args])
     parser_eng_drop.add_argument("--input_path", type=Path, required=True, help="Path to the results file.")
+    parser_eng_drop.add_argument("--top_n", default=None, type=int, help="If set, will only show the .")
     # fmt: on
     return parser.parse_args()
 
@@ -73,9 +71,7 @@ def main():
 
 def plot_main_heatmap(
     input_path: Path,
-    output_path: Optional[Path] = None,
-    top_ten_only: bool = False,
-    print_latex: bool = False,
+    output_path: Path,
     figsize: Optional[tuple[int, int]] = (18, 5),
 ):
 
@@ -97,6 +93,68 @@ def plot_main_heatmap(
 
     plt.tight_layout()
     fig.savefig(output_path, bbox_inches="tight")
+
+
+def plot_eng_drop_line(
+    input_path: Path,
+    output_path: Path,
+    figsize: Optional[tuple[int, int]] = (18, 5),
+    top_n: Optional[int] = None,
+):
+    from scipy.stats import pearsonr
+
+    df = pd.read_csv(input_path)
+    df = df[["Model", "eng_Latn", "Avg_Multilingual"]]
+    df = df.sort_values(by="Avg_Multilingual", ascending=False).reset_index(drop=True)
+    data = df.set_index("Model").dropna() * 100
+    if top_n:
+        logging.info(f"Showing top {top_n}")
+        data = data.head(top_n)
+
+    fig, ax = plt.subplots(figsize=figsize)
+    mrewardbench_scores = data["Avg_Multilingual"]
+    rewardbench_scores = data["eng_Latn"]
+    r, _ = pearsonr(mrewardbench_scores, rewardbench_scores)
+    ax.scatter(mrewardbench_scores, rewardbench_scores, marker="o", s=30, color="black")
+
+    min_val = min(mrewardbench_scores.min(), rewardbench_scores.min())
+    max_val = max(mrewardbench_scores.max(), rewardbench_scores.max())
+    ax.plot(
+        [min_val, max_val],
+        [min_val, max_val],
+        linestyle="--",
+        color="black",
+    )
+    ax.set_xlabel(f"M-RewardBench (Pearson r: {r:.2f})")
+    ax.set_ylabel("RewardBench (Lambert et al., 2024)")
+    ax.set_aspect("equal")
+
+    texts = [
+        ax.text(
+            mrewardbench_scores[idx],
+            rewardbench_scores[idx],
+            data.index[idx],
+            fontsize=11,
+        )
+        for idx in range(len(data))
+    ]
+    adjust_text(
+        texts,
+        ax=ax,
+        # force_static=0.15,
+        arrowprops=dict(arrowstyle="->", color="gray"),
+    )
+
+    ax.spines["right"].set_visible(False)
+    ax.spines["top"].set_visible(False)
+    plt.tight_layout()
+    fig.savefig(output_path, bbox_inches="tight")
+
+    logging.info("Showing top-10 models with biggest deltas")
+    delta_df = data.copy(deep=True)
+    delta_df["delta"] = delta_df["eng_Latn"] - delta_df["Avg_Multilingual"]
+    delta_df = delta_df.sort_values(by="delta", ascending=False)
+    print(delta_df.to_latex())
 
 
 if __name__ == "__main__":
