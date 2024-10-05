@@ -42,11 +42,10 @@ def get_args():
 
     parser_main_results = subparsers.add_parser("main_heatmap", help="Plot results as a heatmap.", parents=[shared_args])
     parser_main_results.add_argument("--input_path", type=Path, required=True, help="Path to the results file.")
-    parser_main_results.add_argument("--top_ten_only", action="store_true", help="If set, will only show the top-10 of all models.")
-    parser_main_results.add_argument("--print_latex", action="store_true", help="If set, print LaTeX table.")
 
     parser_eng_drop = subparsers.add_parser("eng_drop_line", help="Plot english drop as a line chart.", parents=[shared_args])
     parser_eng_drop.add_argument("--input_path", type=Path, required=True, help="Path to the results file.")
+    parser_eng_drop.add_argument("--top_n", default=None, help="If set, will only show the .")
     # fmt: on
     return parser.parse_args()
 
@@ -73,9 +72,7 @@ def main():
 
 def plot_main_heatmap(
     input_path: Path,
-    output_path: Optional[Path] = None,
-    top_ten_only: bool = False,
-    print_latex: bool = False,
+    output_path: Path,
     figsize: Optional[tuple[int, int]] = (18, 5),
 ):
 
@@ -97,6 +94,22 @@ def plot_main_heatmap(
 
     plt.tight_layout()
     fig.savefig(output_path, bbox_inches="tight")
+
+
+def plot_eng_drop_line(
+    input_path: Path,
+    output_path: Path,
+    figsize: Optional[tuple[int, int]] = (18, 5),
+    top_n: Optional[int] = None,
+):
+    df = pd.read_csv(input_path)
+    df = df[["Model", "Avg_Multilingual", "eng_Latn"]]
+    df = df.sort_values(by="Avg_Multilingual", ascending=False).reset_index(drop=True)
+    data = df.set_index("Model").dropna() * 100
+    if top_n:
+        logging.info(f"Showing top {top_n}")
+        data = data.head(top_n)
+    breakpoint()
 
 
 if __name__ == "__main__":
