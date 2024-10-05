@@ -150,6 +150,12 @@ def plot_eng_drop_line(
     plt.tight_layout()
     fig.savefig(output_path, bbox_inches="tight")
 
+    logging.info("Showing top-10 models with biggest deltas")
+    delta_df = data.copy(deep=True)
+    delta_df["delta"] = delta_df["eng_Latn"] - delta_df["Avg_Multilingual"]
+    delta_df = delta_df.sort_values(by="delta", ascending=False)
+    breakpoint()
+
 
 if __name__ == "__main__":
     main()
