@@ -154,7 +154,7 @@ def plot_eng_drop_line(
     delta_df = data.copy(deep=True)
     delta_df["delta"] = delta_df["eng_Latn"] - delta_df["Avg_Multilingual"]
     delta_df = delta_df.sort_values(by="delta", ascending=False)
-    breakpoint()
+    print(delta_df.to_latex())
 
 
 if __name__ == "__main__":
