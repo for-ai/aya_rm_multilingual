@@ -83,12 +83,16 @@ def plot_main_heatmap(
     data = df[[col for col in df.columns if col not in ["Model_Type"]]].rename(columns={"Avg_Multilingual": "Avg"})
     data = data.set_index("Model")
     data = data * 100
+    data["zho"] = data[["zho_Hans", "zho_Hant"]].mean(axis=1)
+    data.pop("zho_Hans")
+    data.pop("zho_Hant")
     data = data[sorted(data.columns)]
+    data.columns = [col.split("_")[0] for col in data.columns]
 
     fig, ax = plt.subplots(1, 1, figsize=figsize)
     sns.heatmap(data, ax=ax, cmap="YlGn", annot=True, annot_kws={"size": 14}, fmt=".2f", cbar=False)
     ax.xaxis.set_ticks_position("top")
-    ax.tick_params(axis="x", rotation=45)
+    ax.tick_params(axis="x")
     ax.set_ylabel("")
     ax.set_yticklabels([f"{model}     " for model in data.index])
 
