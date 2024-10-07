@@ -80,9 +80,10 @@ def plot_main_heatmap(
     df.pop("eng_Latn")
 
     df = df.sort_values(by="Avg_Multilingual", ascending=False).head(10).reset_index(drop=True)
-    data = df[[col for col in df.columns if col not in ("Model_Type", "Avg_Multilingual")]]
+    data = df[[col for col in df.columns if col not in ["Model_Type"]]].rename(columns={"Avg_Multilingual": "Avg"})
     data = data.set_index("Model")
     data = data * 100
+    data = data[sorted(data.columns)]
 
     fig, ax = plt.subplots(1, 1, figsize=figsize)
     sns.heatmap(data, ax=ax, cmap="YlGn", annot=True, annot_kws={"size": 14}, fmt=".2f", cbar=False)
@@ -100,41 +101,45 @@ def plot_eng_drop_line(
     output_path: Path,
     figsize: Optional[tuple[int, int]] = (18, 5),
     top_n: Optional[int] = None,
-):
-    from scipy.stats import pearsonr
+
+    from scipy.stats import pearsonr, spearmanr
 
     df = pd.read_csv(input_path)
-    df = df[["Model", "eng_Latn", "Avg_Multilingual"]]
+    df = df[["Model", "Model_Type", "eng_Latn", "Avg_Multilingual"]]
     df = df.sort_values(by="Avg_Multilingual", ascending=False).reset_index(drop=True)
-    data = df.set_index("Model").dropna() * 100
+    data = df.set_index("Model").dropna()
+    data = data[["eng_Latn", "Avg_Multilingual"]] * 100
+    model_types = df.dropna().pop("Model_Type")
     if top_n:
         logging.info(f"Showing top {top_n}")
         data = data.head(top_n)
-
+        model_types = model_types[:top_n]
+        
     fig, ax = plt.subplots(figsize=figsize)
     mrewardbench_scores = data["Avg_Multilingual"]
     rewardbench_scores = data["eng_Latn"]
     r, _ = pearsonr(mrewardbench_scores, rewardbench_scores)
-    ax.scatter(mrewardbench_scores, rewardbench_scores, marker="o", s=30, color="black")
+    res = spearmanr(mrewardbench_scores, rewardbench_scores)
 
-    min_val = min(mrewardbench_scores.min(), rewardbench_scores.min())
-    max_val = max(mrewardbench_scores.max(), rewardbench_scores.max())
-    ax.plot(
-        [min_val, max_val],
-        [min_val, max_val],
-        linestyle="--",
-        color="black",
-    )
-    ax.set_xlabel(f"M-RewardBench (Pearson r: {r:.2f})")
-    ax.set_ylabel("RewardBench (Lambert et al., 2024)")
+    colormap = {"Generative RM": "green", "Sequence Classifier": "blue", "DPO": "red"}
+    colors = [colormap[model_type] for model_type in model_types]
+
+    ax.scatter(rewardbench_scores, mrewardbench_scores, marker="o", s=30, color=colors)
+
+    min_val = min(rewardbench_scores.min(), mrewardbench_scores.min())
+    max_val = max(rewardbench_scores.max(), mrewardbench_scores.max())
+    ax.plot([min_val, max_val], [min_val, max_val], linestyle="--", color="black", alpha=0.25)
+    ax.set_xlabel("RewardBench (Lambert et al., 2024)")
+    ax.set_ylabel("M-RewardBench")
     ax.set_aspect("equal")
 
+    model_names = [model.split("/")[1] for model in data.index]
     texts = [
         ax.text(
-            mrewardbench_scores[idx],
             rewardbench_scores[idx],
-            data.index[idx],
-            fontsize=11,
+            mrewardbench_scores[idx],
+            model_names[idx],
+            fontsize=12,
         )
         for idx in range(len(data))
     ]
@@ -143,6 +148,16 @@ def plot_eng_drop_line(
         ax=ax,
         # force_static=0.15,
         arrowprops=dict(arrowstyle="->", color="gray"),
+    )
+
+    ax.text(
+        0.1,
+        0.9,
+        s=f"Pearson-r: {r:.2f}\nSpearman-r: {res.statistic:.2f}",
+        fontsize=14,
+        transform=ax.transAxes,
+        verticalalignment="top",
+        bbox=dict(facecolor="white", edgecolor="black", boxstyle="round,pad=0.5"),
     )
 
     ax.spines["right"].set_visible(False)
