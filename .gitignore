@@ -166,3 +166,4 @@ output/*
 configs/*.yml
 .DS_Store
 plots/*
+.vscode

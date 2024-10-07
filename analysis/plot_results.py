@@ -101,7 +101,7 @@ def plot_eng_drop_line(
     output_path: Path,
     figsize: Optional[tuple[int, int]] = (18, 5),
     top_n: Optional[int] = None,
-):
+
     from scipy.stats import pearsonr, spearmanr
 
     df = pd.read_csv(input_path)
@@ -114,7 +114,7 @@ def plot_eng_drop_line(
         logging.info(f"Showing top {top_n}")
         data = data.head(top_n)
         model_types = model_types[:top_n]
-
+        
     fig, ax = plt.subplots(figsize=figsize)
     mrewardbench_scores = data["Avg_Multilingual"]
     rewardbench_scores = data["eng_Latn"]
