@@ -80,9 +80,10 @@ def plot_main_heatmap(
     df.pop("eng_Latn")
 
     df = df.sort_values(by="Avg_Multilingual", ascending=False).head(10).reset_index(drop=True)
-    data = df[[col for col in df.columns if col not in ("Model_Type", "Avg_Multilingual")]]
+    data = df[[col for col in df.columns if col not in ["Model_Type"]]].rename(columns={"Avg_Multilingual": "Avg"})
     data = data.set_index("Model")
     data = data * 100
+    data = data[sorted(data.columns)]
 
     fig, ax = plt.subplots(1, 1, figsize=figsize)
     sns.heatmap(data, ax=ax, cmap="YlGn", annot=True, annot_kws={"size": 14}, fmt=".2f", cbar=False)
