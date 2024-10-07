@@ -390,6 +390,16 @@ def main():
     output_path = output_dir / f"{args.model}-{args.lang_code}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # get core dataset
+    results_grouped = {}
+    present_subsets = np.unique(subsets)
+    for subset in present_subsets:
+        subset_dataset = out_dataset.filter(lambda example: example["subset"] == subset)
+        num_correct = sum(subset_dataset["results"])
+        num_total = len(subset_dataset["results"])
+        print(f"{subset}: {num_correct}/{num_total} ({num_correct/num_total})")
+        results_grouped[subset] = num_correct / num_total
+
     logger.info(f"Saving to {output_path}")
     with output_path.open("w") as f:
         json.dump(
@@ -401,6 +411,7 @@ def main():
                 "tokenizer": tokenizer_path,
                 "chat_template": args.chat_template,
                 "extra_results": results_grouped if "reward-bench" in args.dataset_name else None,
+                "subset_results": results_grouped,
             },
             f,
         )
