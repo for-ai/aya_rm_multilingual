@@ -112,23 +112,26 @@ def plot_eng_drop_line(
     df = df[["Model", "Model_Type", "eng_Latn", "Avg_Multilingual"]]
     df = df.sort_values(by="Avg_Multilingual", ascending=False).reset_index(drop=True)
     data = df.set_index("Model").dropna()
-    data = data[["eng_Latn", "Avg_Multilingual"]] * 100
-    model_types = df.dropna().pop("Model_Type")
+    data[data.select_dtypes(include="number").columns] = data.select_dtypes(include="number") * 100
+    data["Model_Type"] = data["Model_Type"].replace({"DPO": "Implicit RM", "Sequence Classifier": "Classifier RM"})
     if top_n:
         logging.info(f"Showing top {top_n}")
         data = data.head(top_n)
-        model_types = model_types[:top_n]
 
     fig, ax = plt.subplots(figsize=figsize)
+
+    colors = ["red", "green", "blue"]
+    for (label, group), colors in zip(data.groupby("Model_Type"), colors):
+        mrewardbench_scores = group["Avg_Multilingual"]
+        rewardbench_scores = group["eng_Latn"]
+        ax.scatter(rewardbench_scores, mrewardbench_scores, marker="o", s=30, label=label)
+
     mrewardbench_scores = data["Avg_Multilingual"]
     rewardbench_scores = data["eng_Latn"]
     r, _ = pearsonr(mrewardbench_scores, rewardbench_scores)
     res = spearmanr(mrewardbench_scores, rewardbench_scores)
 
-    colormap = {"Generative RM": "green", "Sequence Classifier": "blue", "DPO": "red"}
-    colors = [colormap[model_type] for model_type in model_types]
-
-    ax.scatter(rewardbench_scores, mrewardbench_scores, marker="o", s=30, color=colors)
+    # ax.scatter(rewardbench_scores, mrewardbench_scores, marker="o", s=30, color=colors, label=model_types)
 
     min_val = min(rewardbench_scores.min(), mrewardbench_scores.min())
     max_val = max(rewardbench_scores.max(), mrewardbench_scores.max())
@@ -136,6 +139,7 @@ def plot_eng_drop_line(
     ax.set_xlabel("RewardBench (Lambert et al., 2024)")
     ax.set_ylabel("M-RewardBench")
     ax.set_aspect("equal")
+    ax.legend()
 
     model_names = [model.split("/")[1] for model in data.index]
     texts = [
