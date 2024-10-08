@@ -121,10 +121,10 @@ def plot_eng_drop_line(
     fig, ax = plt.subplots(figsize=figsize)
 
     colors = ["red", "green", "blue"]
-    for (label, group), colors in zip(data.groupby("Model_Type"), colors):
+    for (label, group), color in zip(data.groupby("Model_Type"), colors):
         mrewardbench_scores = group["Avg_Multilingual"]
         rewardbench_scores = group["eng_Latn"]
-        ax.scatter(rewardbench_scores, mrewardbench_scores, marker="o", s=30, label=label)
+        ax.scatter(rewardbench_scores, mrewardbench_scores, marker="o", s=30, label=label, color=color)
 
     mrewardbench_scores = data["Avg_Multilingual"]
     rewardbench_scores = data["eng_Latn"]
@@ -139,7 +139,7 @@ def plot_eng_drop_line(
     ax.set_xlabel("RewardBench (Lambert et al., 2024)")
     ax.set_ylabel("M-RewardBench")
     ax.set_aspect("equal")
-    ax.legend()
+    ax.legend(frameon=False, handletextpad=0.2, fontsize=12)
 
     model_names = [model.split("/")[1] for model in data.index]
     texts = [
@@ -158,15 +158,17 @@ def plot_eng_drop_line(
         arrowprops=dict(arrowstyle="->", color="gray"),
     )
 
-    ax.text(
-        0.1,
-        0.9,
-        s=f"Pearson-r: {r:.2f}\nSpearman-r: {res.statistic:.2f}",
-        fontsize=14,
-        transform=ax.transAxes,
-        verticalalignment="top",
-        bbox=dict(facecolor="white", edgecolor="black", boxstyle="round,pad=0.5"),
-    )
+    # ax.text(
+    #     0.6,
+    #     0.8,
+    #     s=f"Pearson-r: {r:.2f}  Spearman-r: {res.statistic:.2f}",
+    #     fontsize=14,
+    #     transform=ax.transAxes,
+    #     verticalalignment="top",
+    #     rotation=45,
+    #     color="gray",
+    #     # bbox=dict(facecolor="white", edgecolor="black", boxstyle="round,pad=0.5"),
+    # )
 
     ax.spines["right"].set_visible(False)
     ax.spines["top"].set_visible(False)
