@@ -85,7 +85,7 @@ EXAMPLE_COUNTS = {
     "mt-bench-easy": 24,
     "mt-bench-med": 38,
     "mt-bench-hard": 35,
-    "math-prm": 984,  # actual length 447, upweighting to be equal to code
+    "math-prm": 983,  # actual length 447, upweighting to be equal to code
     "refusals-dangerous": 100,
     "refusals-offensive": 100,
     "llmbar-natural": 76,
