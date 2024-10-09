@@ -45,6 +45,10 @@ def get_args():
     parser_eng_drop = subparsers.add_parser("eng_drop_line", help="Plot english drop as a line chart.", parents=[shared_args])
     parser_eng_drop.add_argument("--input_path", type=Path, required=True, help="Path to the results file.")
     parser_eng_drop.add_argument("--top_n", default=None, type=int, help="If set, will only show the .")
+
+    parser_ling_dims = subparsers.add_parser("ling_dims", help="Plot performance with respect to linguistic dimensions.", parents=[shared_args])
+    parser_ling_dims.add_argument("--input_path", type=Path, required=True, help="Path to the results file.")
+    parser_ling_dims.add_argument("--langdata", type=Path, required=True, help="Path to the language data file.")
     # fmt: on
     return parser.parse_args()
 
@@ -55,6 +59,7 @@ def main():
     cmd_map = {
         "main_heatmap": plot_main_heatmap,
         "eng_drop_line": plot_eng_drop_line,
+        "ling_dims": plot_ling_dims,
     }
 
     def _filter_args(func, kwargs):
@@ -180,6 +185,17 @@ def plot_eng_drop_line(
     delta_df["delta"] = delta_df["eng_Latn"] - delta_df["Avg_Multilingual"]
     delta_df = delta_df.sort_values(by="delta", ascending=False)
     print(delta_df.to_latex())
+
+
+def plot_ling_dims(
+    input_path: Path,
+    langdata: Path,
+    output_path: Path,
+    figsize: Optional[tuple[int, int]] = (18, 5),
+):
+    df = pd.read_csv(input_path)
+    langdata = pd.read_csv(langdata)
+    breakpoint()
 
 
 if __name__ == "__main__":
