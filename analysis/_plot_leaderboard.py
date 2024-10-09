@@ -61,6 +61,16 @@ def main():
         category="Reasoning",
     )
 
+    dfs = {
+        "chat": chat_leaderboard_df,
+        "chat-hard": chat_hard_leaderboard_df,
+        "safety": safety_leaderboard_df,
+        "reasoning": reasoning_leaderboard_df,
+    }
+
+    for k, v in dfs.items():
+        v.to_csv(f"{k}.csv")
+
     # Save per model type
     model_types = leaderboard_df["Type"].unique().tolist()
     for model_type in model_types:
