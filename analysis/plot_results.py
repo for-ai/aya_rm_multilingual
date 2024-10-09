@@ -223,19 +223,10 @@ def plot_ling_dims(
             color="green",
             width=0.2 if dim == "Resource Availability" else 0.7,
         )
-        # if dim == "Script":
-        #     ax.set_xlabel(dim, labelpad=20)
-        # else:
-        #     ax.set_xlabel(dim)
         ax.set_title(dim)
         ax.set_xlim([60, 70])
         ax.set_ylabel("")
         ax.set_xlabel("M-RewardBench Score")
-        # ax.set_ylim([50, 70])
-        # if dim == "Resource Availability":
-        #     ax.set_xticklabels(lingdf[dim])
-        # else:
-        #     ax.set_xticklabels(lingdf[dim], rotation=45, ha="right")
 
         ax.spines["right"].set_visible(False)
         ax.spines["top"].set_visible(False)
