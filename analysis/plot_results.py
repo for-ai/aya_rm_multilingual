@@ -49,6 +49,7 @@ def get_args():
     parser_ling_dims = subparsers.add_parser("ling_dims", help="Plot performance with respect to linguistic dimensions.", parents=[shared_args])
     parser_ling_dims.add_argument("--input_path", type=Path, required=True, help="Path to the results file.")
     parser_ling_dims.add_argument("--langdata", type=Path, required=True, help="Path to the language data file.")
+    parser_ling_dims.add_argument("--top_n", type=int, required=False, default=None, help="Aggregate only the scores for top-n.")
     # fmt: on
     return parser.parse_args()
 
@@ -191,9 +192,12 @@ def plot_ling_dims(
     input_path: Path,
     langdata: Path,
     output_path: Path,
+    top_n: Optional[int] = None,
     figsize: Optional[tuple[int, int]] = (18, 5),
 ):
     raw = pd.read_csv(input_path).set_index("Model")
+    if top_n:
+        raw = raw.head(top_n)
     raw = raw[[col for col in raw.columns if col not in ("Model_Type", "eng_Latn", "Avg_Multilingual")]]
     raw = raw.T
     langdata = pd.read_csv(langdata).set_index("Language")
@@ -203,24 +207,35 @@ def plot_ling_dims(
 
     combined = combined.rename(columns={"Resource_Type": "Resource Availability"})
     linguistic_dims = [
-        # "Resource Availability",
+        "Resource Availability",
         "Family",
         "Script",
     ]
-    fig, axs = plt.subplots(1, len(linguistic_dims), figsize=figsize)
+    fig, axs = plt.subplots(1, len(linguistic_dims), figsize=figsize, sharex=True)
     for ax, dim in zip(axs, linguistic_dims):
         lingdf = combined.groupby(dim).agg({"Avg": "mean", "Std": "mean"}).reset_index()
-        sns.barplot(x=dim, y="Avg", data=lingdf, ax=ax, ci=None, color="green")
-        if dim == "Script":
-            ax.set_xlabel(dim, labelpad=20)
-        else:
-            ax.set_xlabel(dim)
-        ax.set_ylabel("M-RewardBench Score")
-        ax.set_ylim([50, 70])
-        if dim == "Resource Availability":
-            ax.set_xticklabels(lingdf[dim])
-        else:
-            ax.set_xticklabels(lingdf[dim], rotation=45, ha="right")
+
+        sns.barplot(
+            x="Avg",
+            y=dim,
+            data=lingdf,
+            ax=ax,
+            color="green",
+            width=0.2 if dim == "Resource Availability" else 0.7,
+        )
+        # if dim == "Script":
+        #     ax.set_xlabel(dim, labelpad=20)
+        # else:
+        #     ax.set_xlabel(dim)
+        ax.set_title(dim)
+        ax.set_xlim([60, 70])
+        ax.set_ylabel("")
+        ax.set_xlabel("M-RewardBench Score")
+        # ax.set_ylim([50, 70])
+        # if dim == "Resource Availability":
+        #     ax.set_xticklabels(lingdf[dim])
+        # else:
+        #     ax.set_xticklabels(lingdf[dim], rotation=45, ha="right")
 
         ax.spines["right"].set_visible(False)
         ax.spines["top"].set_visible(False)
