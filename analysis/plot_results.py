@@ -193,9 +193,40 @@ def plot_ling_dims(
     output_path: Path,
     figsize: Optional[tuple[int, int]] = (18, 5),
 ):
-    df = pd.read_csv(input_path)
-    langdata = pd.read_csv(langdata)
-    breakpoint()
+    raw = pd.read_csv(input_path).set_index("Model")
+    raw = raw[[col for col in raw.columns if col not in ("Model_Type", "eng_Latn", "Avg_Multilingual")]]
+    raw = raw.T
+    langdata = pd.read_csv(langdata).set_index("Language")
+    combined = raw.merge(langdata, left_index=True, right_index=True)
+    combined["Avg"] = raw.mean(axis=1) * 100
+    combined["Std"] = raw.std(axis=1) * 100
+
+    combined = combined.rename(columns={"Resource_Type": "Resource Availability"})
+    linguistic_dims = [
+        # "Resource Availability",
+        "Family",
+        "Script",
+    ]
+    fig, axs = plt.subplots(1, len(linguistic_dims), figsize=figsize)
+    for ax, dim in zip(axs, linguistic_dims):
+        lingdf = combined.groupby(dim).agg({"Avg": "mean", "Std": "mean"}).reset_index()
+        sns.barplot(x=dim, y="Avg", data=lingdf, ax=ax, ci=None, color="green")
+        if dim == "Script":
+            ax.set_xlabel(dim, labelpad=20)
+        else:
+            ax.set_xlabel(dim)
+        ax.set_ylabel("M-RewardBench Score")
+        ax.set_ylim([50, 70])
+        if dim == "Resource Availability":
+            ax.set_xticklabels(lingdf[dim])
+        else:
+            ax.set_xticklabels(lingdf[dim], rotation=45, ha="right")
+
+        ax.spines["right"].set_visible(False)
+        ax.spines["top"].set_visible(False)
+
+    plt.tight_layout()
+    fig.savefig(output_path, bbox_inches="tight")
 
 
 if __name__ == "__main__":
