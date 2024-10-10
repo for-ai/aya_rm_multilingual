@@ -28,6 +28,44 @@ plt.rcParams.update(PLOT_PARAMS)
 
 logging.basicConfig(level=logging.INFO)
 
+MODEL_STANDARDIZATION = {
+    "openai/gpt-4-turbo-2024-04-09": "GPT-4 Turbo",
+    "openai/gpt-4o-2024-05-13": "GPT-4o",
+    "google/gemma-2-9b-it": "Gemma 2 9B",
+    "LxzGordon/URM-LLaMa-3.1-8B": "URM LlaMa 3.1 8B",
+    "meta-llama/Meta-Llama-3.1-70B-Instruct": "Llama 3.1 70B",
+    "meta-llama/Meta-Llama-3-70B-Instruct": "Llama 3 70B",
+    "CIR-AMS/BTRM_Qwen2_7b_0613": "BTRM Qwen 2 7B",
+    "cohere/command-r-plus-08-2024": "Command R+",
+    "allenai/tulu-2-dpo-13b": "Tulu 2 13B DPO",
+    "cohere/c4ai-aya-23-35b": "Aya 23 35B",
+}
+
+LANG_STANDARDIZATION = {
+    "arb": "ar",
+    "ces": "cs",
+    "deu": "de",
+    "ell": "el",
+    "fra": "fr",
+    "heb": "he",
+    "hin": "hi",
+    "ind": "id",
+    "ita": "it",
+    "jpn": "jp",
+    "kor": "kr",
+    "nld": "nl",
+    "pes": "fa",
+    "pol": "pl",
+    "por": "pt",
+    "ron": "ro",
+    "rus": "ru",
+    "spa": "es",
+    "tur": "tr",
+    "ukr": "uk",
+    "vie": "vi",
+    "zho": "zh",
+}
+
 
 def get_args():
     # fmt: off
@@ -87,6 +125,7 @@ def plot_main_heatmap(
 
     df = df.sort_values(by="Avg_Multilingual", ascending=False).head(10).reset_index(drop=True)
     data = df[[col for col in df.columns if col not in ["Model_Type"]]].rename(columns={"Avg_Multilingual": "Avg"})
+    data["Model"] = data["Model"].replace(MODEL_STANDARDIZATION)
     data = data.set_index("Model")
     data = data * 100
     data["zho"] = data[["zho_Hans", "zho_Hant"]].mean(axis=1)
@@ -94,9 +133,10 @@ def plot_main_heatmap(
     data.pop("zho_Hant")
     data = data[sorted(data.columns)]
     data.columns = [col.split("_")[0] for col in data.columns]
+    data = data.rename(columns=LANG_STANDARDIZATION)
 
     fig, ax = plt.subplots(1, 1, figsize=figsize)
-    sns.heatmap(data, ax=ax, cmap="YlGn", annot=True, annot_kws={"size": 14}, fmt=".2f", cbar=False)
+    sns.heatmap(data, ax=ax, cmap="YlGn", annot=True, annot_kws={"size": 16}, fmt=".2f", cbar=False)
     ax.xaxis.set_ticks_position("top")
     ax.tick_params(axis="x")
     ax.set_ylabel("")
