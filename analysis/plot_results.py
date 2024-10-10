@@ -187,7 +187,7 @@ def plot_eng_drop_line(
     ax.set_aspect("equal")
     ax.legend(frameon=False, handletextpad=0.2, fontsize=12)
 
-    model_names = [model.split("/")[1] for model in data.index]
+    model_names = [MODEL_STANDARDIZATION[model] for model in data.index]
     texts = [
         ax.text(
             rewardbench_scores[idx],
@@ -261,7 +261,7 @@ def plot_ling_dims(
             data=lingdf,
             ax=ax,
             color="green",
-            width=0.2 if dim == "Resource Availability" else 0.7,
+            width=0.5 if dim == "Resource Availability" else 0.7,
         )
         ax.set_title(dim)
         ax.set_xlim([60, 70])
