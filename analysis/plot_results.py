@@ -254,6 +254,10 @@ def plot_ling_dims(
     fig, axs = plt.subplots(1, len(linguistic_dims), figsize=figsize, sharex=True)
     for ax, dim in zip(axs, linguistic_dims):
         lingdf = combined.groupby(dim).agg({"Avg": "mean", "Std": "mean"}).reset_index()
+        if dim != "Resource Availability":
+            lingdf = lingdf.sort_values(by="Avg", ascending=False)
+        else:
+            lingdf = lingdf[::-1]
 
         sns.barplot(
             x="Avg",
