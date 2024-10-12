@@ -167,10 +167,11 @@ def plot_eng_drop_line(
     fig, ax = plt.subplots(figsize=figsize)
 
     colors = ["red", "green", "blue"]
+    breakpoint()
     for (label, group), color in zip(data.groupby("Model_Type"), colors):
         mrewardbench_scores = group["Avg_Multilingual"]
         rewardbench_scores = group["eng_Latn"]
-        ax.scatter(rewardbench_scores, mrewardbench_scores, marker="o", s=30, label=label, color=color)
+        ax.scatter(rewardbench_scores, mrewardbench_scores, marker="o", s=40, label=label, color=color)
 
     mrewardbench_scores = data["Avg_Multilingual"]
     rewardbench_scores = data["eng_Latn"]
@@ -184,6 +185,7 @@ def plot_eng_drop_line(
     ax.plot([min_val, max_val], [min_val, max_val], linestyle="--", color="black", alpha=0.25)
     ax.set_xlabel("RewardBench (Lambert et al., 2024)")
     ax.set_ylabel("M-RewardBench")
+    ax.grid(color="gray", alpha=0.2, which="both")
     ax.set_aspect("equal")
     ax.legend(frameon=False, handletextpad=0.2, fontsize=12)
 
@@ -216,8 +218,8 @@ def plot_eng_drop_line(
     #     # bbox=dict(facecolor="white", edgecolor="black", boxstyle="round,pad=0.5"),
     # )
 
-    ax.spines["right"].set_visible(False)
-    ax.spines["top"].set_visible(False)
+    # ax.spines["right"].set_visible(False)
+    # ax.spines["top"].set_visible(False)
     plt.tight_layout()
     fig.savefig(output_path, bbox_inches="tight")
 
