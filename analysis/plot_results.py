@@ -167,7 +167,6 @@ def plot_eng_drop_line(
     fig, ax = plt.subplots(figsize=figsize)
 
     colors = ["red", "green", "blue"]
-    breakpoint()
     for (label, group), color in zip(data.groupby("Model_Type"), colors):
         mrewardbench_scores = group["Avg_Multilingual"]
         rewardbench_scores = group["eng_Latn"]
@@ -195,7 +194,7 @@ def plot_eng_drop_line(
             rewardbench_scores[idx],
             mrewardbench_scores[idx],
             model_names[idx],
-            fontsize=12,
+            fontsize=14,
         )
         for idx in range(len(data))
     ]
@@ -240,7 +239,7 @@ def plot_ling_dims(
     raw = pd.read_csv(input_path).set_index("Model")
     if top_n:
         raw = raw.head(top_n)
-    raw = raw[[col for col in raw.columns if col not in ("Model_Type", "eng_Latn", "Avg_Multilingual")]]
+    raw = raw[[col for col in raw.columns if col not in ("Model_Type", "eng_Latn", "Avg_Multilingual", "Family")]]
     raw = raw.T
     langdata = pd.read_csv(langdata).set_index("Language")
     combined = raw.merge(langdata, left_index=True, right_index=True)
@@ -248,6 +247,9 @@ def plot_ling_dims(
     combined["Std"] = raw.std(axis=1) * 100
 
     combined = combined.rename(columns={"Resource_Type": "Resource Availability"})
+    # Remove Class 0 because it's misleading
+    combined = combined[combined["Resource Availability"] != "Class-0"].reset_index()
+
     linguistic_dims = [
         "Resource Availability",
         "Family",
@@ -261,21 +263,23 @@ def plot_ling_dims(
         else:
             lingdf = lingdf[::-1]
 
+        ax.grid(color="gray", alpha=0.2, which="both", axis="x")
+        ax.set_axisbelow(True)
         sns.barplot(
             x="Avg",
             y=dim,
             data=lingdf,
             ax=ax,
             color="green",
-            width=0.5 if dim == "Resource Availability" else 0.7,
+            width=0.4 if dim == "Resource Availability" else 0.7,
         )
         ax.set_title(dim)
         ax.set_xlim([60, 70])
         ax.set_ylabel("")
         ax.set_xlabel("M-RewardBench Score")
 
-        ax.spines["right"].set_visible(False)
-        ax.spines["top"].set_visible(False)
+        # ax.spines["right"].set_visible(False)
+        # ax.spines["top"].set_visible(False)
 
     plt.tight_layout()
     fig.savefig(output_path, bbox_inches="tight")
