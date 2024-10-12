@@ -179,7 +179,7 @@ def plot_eng_drop_line(
     from scipy.stats import pearsonr, spearmanr
 
     df = pd.read_csv(input_path)
-    df = df[["Model", "Model_Type", "eng_Latn", "Avg_Multilingual"]]
+    df = df[["Model", "Model_Type", "Family", "eng_Latn", "Avg_Multilingual"]]
     df = df.sort_values(by="Avg_Multilingual", ascending=False).reset_index(drop=True)
     data = df.set_index("Model").dropna()
     data[data.select_dtypes(include="number").columns] = data.select_dtypes(include="number") * 100
@@ -191,6 +191,16 @@ def plot_eng_drop_line(
     fig, ax = plt.subplots(figsize=figsize)
 
     colors = ["red", "green", "blue"]
+    family = {
+        "Independent": "o",
+        "Qwen": "x",
+        "Skywork": "P",
+        "Cohere": "*",
+        "OpenAI": "s",
+        "AllenAI": "D",
+        "OpenBMB": "H",
+        "Meta": "^",
+    }
     for (label, group), color in zip(data.groupby("Model_Type"), colors):
         mrewardbench_scores = group["Avg_Multilingual"]
         rewardbench_scores = group["eng_Latn"]
@@ -212,22 +222,23 @@ def plot_eng_drop_line(
     ax.set_aspect("equal")
     ax.legend(frameon=False, handletextpad=0.2, fontsize=12)
 
-    model_names = [MODEL_STANDARDIZATION[model] for model in data.index]
-    texts = [
-        ax.text(
-            rewardbench_scores[idx],
-            mrewardbench_scores[idx],
-            model_names[idx],
-            fontsize=14,
+    if top_n:
+        model_names = [MODEL_STANDARDIZATION[model] for model in data.index]
+        texts = [
+            ax.text(
+                rewardbench_scores[idx],
+                mrewardbench_scores[idx],
+                model_names[idx],
+                fontsize=14,
+            )
+            for idx in range(len(data))
+        ]
+        adjust_text(
+            texts,
+            ax=ax,
+            force_static=0.15,
+            arrowprops=dict(arrowstyle="->", color="gray"),
         )
-        for idx in range(len(data))
-    ]
-    adjust_text(
-        texts,
-        ax=ax,
-        # force_static=0.15,
-        arrowprops=dict(arrowstyle="->", color="gray"),
-    )
 
     # ax.text(
     #     0.6,
