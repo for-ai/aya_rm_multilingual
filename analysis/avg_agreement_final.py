@@ -48,7 +48,7 @@ std_devs_sorted = [v[1] for v in sorted_data.values()]
 plt.figure(figsize=(7, 7))
 x_pos_sorted = np.arange(len(labels_sorted))
 
-ax1 = sns.barplot(x=x_pos_sorted, y=means_sorted, errorbar=None, color="gray")
+ax1 = sns.barplot(x=x_pos_sorted, y=means_sorted, errorbar=None, color="gray", edgecolor="k")
 plt.errorbar(x_pos_sorted, means_sorted, yerr=std_devs_sorted, fmt="none", c="black", capsize=5)
 
 # ax1.spines["top"].set_color("black")
