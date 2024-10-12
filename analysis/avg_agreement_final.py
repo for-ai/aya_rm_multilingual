@@ -45,7 +45,7 @@ std_devs_sorted = [v[1] for v in sorted_data.values()]
 # sns.set(style="whitegrid")
 # palette = sns.color_palette("coolwarm", len(labels_sorted))
 
-plt.figure(figsize=(10, 5))
+plt.figure(figsize=(7, 7))
 x_pos_sorted = np.arange(len(labels_sorted))
 
 ax1 = sns.barplot(x=x_pos_sorted, y=means_sorted, errorbar=None, color="green")

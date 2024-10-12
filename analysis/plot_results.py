@@ -13,7 +13,7 @@ FONT_SIZES = {"small": 12, "medium": 16, "large": 18}
 
 PLOT_PARAMS = {
     "font.family": "serif",
-    "font.serif": ["Times New Roman", "STIX"],
+    "font.serif": ["Times", "Times New Roman", "STIX"],
     "font.size": FONT_SIZES.get("medium"),
     "axes.titlesize": FONT_SIZES.get("large"),
     "axes.labelsize": FONT_SIZES.get("large"),
@@ -122,6 +122,7 @@ def plot_main_heatmap(
     df = pd.read_csv(input_path)
     # Remove unnecessary column
     df.pop("eng_Latn")
+    df.pop("Family")
 
     df = df.sort_values(by="Avg_Multilingual", ascending=False).head(10).reset_index(drop=True)
     data = df[[col for col in df.columns if col not in ["Model_Type"]]].rename(columns={"Avg_Multilingual": "Avg"})
@@ -133,14 +134,37 @@ def plot_main_heatmap(
     data.pop("zho_Hant")
     data = data[sorted(data.columns)]
     data.columns = [col.split("_")[0] for col in data.columns]
+    data["Var"] = data[list(LANG_STANDARDIZATION.keys())].var(axis=1)
     data = data.rename(columns=LANG_STANDARDIZATION)
 
-    fig, ax = plt.subplots(1, 1, figsize=figsize)
-    sns.heatmap(data, ax=ax, cmap="YlGn", annot=True, annot_kws={"size": 16}, fmt=".2f", cbar=False)
-    ax.xaxis.set_ticks_position("top")
-    ax.tick_params(axis="x")
-    ax.set_ylabel("")
-    ax.set_yticklabels([f"{model}     " for model in data.index])
+    lang_results = data[list(LANG_STANDARDIZATION.values())]
+    avg = data[["Avg"]]
+    var = data[["Var"]]
+
+    fig, axs = plt.subplots(ncols=3, figsize=figsize, gridspec_kw={"width_ratios": [0.5, 0.5, 9]}, sharey=True)
+
+    sns.heatmap(avg, ax=axs[0], cmap="YlGn", annot=True, annot_kws={"size": 16}, fmt=".2f", cbar=False)
+    axs[0].xaxis.set_ticks_position("top")
+    axs[0].set_xticklabels(avg.columns, fontsize=20)
+    axs[0].tick_params(axis="x")
+    axs[0].set_ylabel("")
+    axs[0].set_yticklabels([f"{model}     " for model in avg.index], fontsize=20)
+
+    sns.heatmap(var, ax=axs[1], cmap="YlGn", annot=True, annot_kws={"size": 16}, fmt=".2f", cbar=False)
+    axs[1].xaxis.set_ticks_position("top")
+    axs[1].set_xticklabels(var.columns, fontsize=20)
+    axs[1].tick_params(axis="x")
+    axs[1].set_ylabel("")
+    axs[1].tick_params(axis="y", length=0)
+    axs[1].set_yticklabels([f"{model}     " for model in var.index], fontsize=20)
+
+    sns.heatmap(lang_results, ax=axs[2], cmap="YlGn", annot=True, annot_kws={"size": 16}, fmt=".2f", cbar=False)
+    axs[2].xaxis.set_ticks_position("top")
+    axs[2].set_xticklabels(lang_results.columns, fontsize=20)
+    axs[2].tick_params(axis="x")
+    axs[2].tick_params(axis="y", length=0)
+    axs[2].set_ylabel("")
+    axs[2].set_yticklabels([f"{model}     " for model in lang_results.index], fontsize=20)
 
     plt.tight_layout()
     fig.savefig(output_path, bbox_inches="tight")
