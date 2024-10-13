@@ -13,7 +13,7 @@ FONT_SIZES = {"small": 12, "medium": 16, "large": 18}
 
 PLOT_PARAMS = {
     "font.family": "serif",
-    "font.serif": ["Times New Roman", "STIX"],
+    "font.serif": ["Times", "Times New Roman", "STIX"],
     "font.size": FONT_SIZES.get("medium"),
     "axes.titlesize": FONT_SIZES.get("large"),
     "axes.labelsize": FONT_SIZES.get("large"),
@@ -65,6 +65,8 @@ LANG_STANDARDIZATION = {
     "vie": "vi",
     "zho": "zh",
 }
+
+COLORS = {"green": "#355145", "purple": "#d8a6e5", "orange": "#fe7759"}
 
 
 def get_args():
@@ -122,6 +124,7 @@ def plot_main_heatmap(
     df = pd.read_csv(input_path)
     # Remove unnecessary column
     df.pop("eng_Latn")
+    df.pop("Family")
 
     df = df.sort_values(by="Avg_Multilingual", ascending=False).head(10).reset_index(drop=True)
     data = df[[col for col in df.columns if col not in ["Model_Type"]]].rename(columns={"Avg_Multilingual": "Avg"})
@@ -133,14 +136,39 @@ def plot_main_heatmap(
     data.pop("zho_Hant")
     data = data[sorted(data.columns)]
     data.columns = [col.split("_")[0] for col in data.columns]
+    data["Var"] = data[list(LANG_STANDARDIZATION.keys())].var(axis=1)
     data = data.rename(columns=LANG_STANDARDIZATION)
 
-    fig, ax = plt.subplots(1, 1, figsize=figsize)
-    sns.heatmap(data, ax=ax, cmap="YlGn", annot=True, annot_kws={"size": 16}, fmt=".2f", cbar=False)
-    ax.xaxis.set_ticks_position("top")
-    ax.tick_params(axis="x")
-    ax.set_ylabel("")
-    ax.set_yticklabels([f"{model}     " for model in data.index])
+    lang_results = data[list(LANG_STANDARDIZATION.values())]
+    avg = data[["Avg"]]
+    var = data[["Var"]]
+
+    fig, axs = plt.subplots(ncols=3, figsize=figsize, gridspec_kw={"width_ratios": [0.5, 0.5, 9]}, sharey=True)
+    cmap = "Greys"
+    fmt = ".1f"
+
+    sns.heatmap(avg, ax=axs[0], cmap=cmap, annot=True, annot_kws={"size": 16}, fmt=fmt, cbar=False)
+    axs[0].xaxis.set_ticks_position("top")
+    axs[0].set_xticklabels(avg.columns, fontsize=20)
+    axs[0].tick_params(axis="x")
+    axs[0].set_ylabel("")
+    axs[0].set_yticklabels([f"{model}     " for model in avg.index], fontsize=20)
+
+    sns.heatmap(var, ax=axs[1], cmap=cmap, annot=True, annot_kws={"size": 16}, fmt=fmt, cbar=False)
+    axs[1].xaxis.set_ticks_position("top")
+    axs[1].set_xticklabels(var.columns, fontsize=20)
+    axs[1].tick_params(axis="x")
+    axs[1].set_ylabel("")
+    axs[1].tick_params(axis="y", length=0)
+    axs[1].set_yticklabels([f"{model}     " for model in var.index], fontsize=20)
+
+    sns.heatmap(lang_results, ax=axs[2], cmap=cmap, annot=True, annot_kws={"size": 16}, fmt=fmt, cbar=False)
+    axs[2].xaxis.set_ticks_position("top")
+    axs[2].set_xticklabels(lang_results.columns, fontsize=20)
+    axs[2].tick_params(axis="x")
+    axs[2].tick_params(axis="y", length=0)
+    axs[2].set_ylabel("")
+    axs[2].set_yticklabels([f"{model}     " for model in lang_results.index], fontsize=20)
 
     plt.tight_layout()
     fig.savefig(output_path, bbox_inches="tight")
@@ -155,7 +183,7 @@ def plot_eng_drop_line(
     from scipy.stats import pearsonr, spearmanr
 
     df = pd.read_csv(input_path)
-    df = df[["Model", "Model_Type", "eng_Latn", "Avg_Multilingual"]]
+    df = df[["Model", "Model_Type", "Family", "eng_Latn", "Avg_Multilingual"]]
     df = df.sort_values(by="Avg_Multilingual", ascending=False).reset_index(drop=True)
     data = df.set_index("Model").dropna()
     data[data.select_dtypes(include="number").columns] = data.select_dtypes(include="number") * 100
@@ -166,11 +194,19 @@ def plot_eng_drop_line(
 
     fig, ax = plt.subplots(figsize=figsize)
 
-    colors = ["red", "green", "blue"]
+    colors = [COLORS.get("green"), COLORS.get("purple"), COLORS.get("orange")]
+    markers = ["o", "*", "D"]
     for (label, group), color in zip(data.groupby("Model_Type"), colors):
         mrewardbench_scores = group["Avg_Multilingual"]
         rewardbench_scores = group["eng_Latn"]
-        ax.scatter(rewardbench_scores, mrewardbench_scores, marker="o", s=40, label=label, color=color)
+        ax.scatter(
+            rewardbench_scores,
+            mrewardbench_scores,
+            marker="o",
+            s=60,
+            label=label,
+            color=color,
+        )
 
     mrewardbench_scores = data["Avg_Multilingual"]
     rewardbench_scores = data["eng_Latn"]
@@ -188,22 +224,23 @@ def plot_eng_drop_line(
     ax.set_aspect("equal")
     ax.legend(frameon=False, handletextpad=0.2, fontsize=12)
 
-    model_names = [MODEL_STANDARDIZATION[model] for model in data.index]
-    texts = [
-        ax.text(
-            rewardbench_scores[idx],
-            mrewardbench_scores[idx],
-            model_names[idx],
-            fontsize=14,
+    if top_n:
+        model_names = [MODEL_STANDARDIZATION[model] for model in data.index]
+        texts = [
+            ax.text(
+                rewardbench_scores[idx],
+                mrewardbench_scores[idx],
+                model_names[idx],
+                fontsize=14,
+            )
+            for idx in range(len(data))
+        ]
+        adjust_text(
+            texts,
+            ax=ax,
+            # force_static=0.15,
+            arrowprops=dict(arrowstyle="->", color="gray"),
         )
-        for idx in range(len(data))
-    ]
-    adjust_text(
-        texts,
-        ax=ax,
-        # force_static=0.15,
-        arrowprops=dict(arrowstyle="->", color="gray"),
-    )
 
     # ax.text(
     #     0.6,
@@ -270,7 +307,8 @@ def plot_ling_dims(
             y=dim,
             data=lingdf,
             ax=ax,
-            color="green",
+            color=COLORS.get("orange"),
+            edgecolor=COLORS.get("green"),
             width=0.4 if dim == "Resource Availability" else 0.7,
         )
         ax.set_title(dim)
