@@ -254,8 +254,6 @@ def plot_eng_drop_line(
     #     # bbox=dict(facecolor="white", edgecolor="black", boxstyle="round,pad=0.5"),
     # )
 
-    # ax.spines["right"].set_visible(False)
-    # ax.spines["top"].set_visible(False)
     plt.tight_layout()
     fig.savefig(output_path, bbox_inches="tight")
 
@@ -315,9 +313,6 @@ def plot_ling_dims(
         ax.set_xlim([60, 70])
         ax.set_ylabel("")
         ax.set_xlabel("M-RewardBench Score")
-
-        # ax.spines["right"].set_visible(False)
-        # ax.spines["top"].set_visible(False)
 
     plt.tight_layout()
     fig.savefig(output_path, bbox_inches="tight")
