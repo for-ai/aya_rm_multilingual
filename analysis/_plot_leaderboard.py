@@ -3,12 +3,12 @@ import logging
 from pathlib import Path
 from typing import Optional
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
 from huggingface_hub import snapshot_download
 
-from analysis.plot_utils import get_scores, PLOT_PARAMS
+from analysis.plot_utils import PLOT_PARAMS, get_scores
 
 logging.basicConfig(level=logging.INFO)
 
@@ -99,7 +99,8 @@ def main():
         output_file = output_dir / f"leaderboard-{model_type.replace(' ', '_')}.png"
         csv_output_file = output_dir / f"leaderboard-{model_type.replace(' ', '_')}.csv"
         data_to_cache = data.copy(deep=True)
-        data_to_cache["eng_Latn"] = model_type_df["eng_Latn"]
+        if "eng_Latn" in model_type_df.columns:
+            data_to_cache["eng_Latn"] = model_type_df["eng_Latn"]
         data_to_cache = data_to_cache.rename(columns={"Avg": "Avg_Multilingual"})
         data_to_cache.to_csv(csv_output_file)
         fig.savefig(output_file, dpi=120)
