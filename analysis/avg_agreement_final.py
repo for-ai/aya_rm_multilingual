@@ -1,6 +1,6 @@
-import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 
 FONT_SIZES = {"small": 12, "medium": 16, "large": 18}
 COLORS = {"green": "#355145", "purple": "#d8a6e5", "orange": "#fe7759"}

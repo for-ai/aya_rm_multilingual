@@ -3,12 +3,12 @@ import logging
 from pathlib import Path
 from typing import Optional
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
 from huggingface_hub import snapshot_download
 
-from analysis.plot_utils import get_scores, PLOT_PARAMS
+from analysis.plot_utils import PLOT_PARAMS, get_scores
 
 logging.basicConfig(level=logging.INFO)
 

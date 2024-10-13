@@ -1,12 +1,12 @@
 import argparse
 import logging
-from pathlib import Path
 from inspect import signature
+from pathlib import Path
 from typing import Optional
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
 from adjustText import adjust_text
 
 FONT_SIZES = {"small": 12, "medium": 16, "large": 18}

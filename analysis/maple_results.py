@@ -1,24 +1,18 @@
-import json
-from pathlib import Path
-
 import argparse
+import json
 import logging
+from collections import defaultdict
+from itertools import combinations
 from pathlib import Path
 from typing import Optional
 
+import datasets
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
 from huggingface_hub import snapshot_download
-import datasets
-import json
 
-import numpy as np
-import matplotlib.pyplot as plt
-from itertools import combinations
-from collections import defaultdict
-
-  
 FONT_SIZES = {"small": 12, "medium": 16, "large": 18}
 
 PLOT_PARAMS = {
