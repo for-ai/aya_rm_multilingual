@@ -307,8 +307,8 @@ def plot_ling_dims(
             y=dim,
             data=lingdf,
             ax=ax,
-            color="gray",
-            edgecolor="k",
+            color=COLORS.get("orange"),
+            edgecolor=COLORS.get("green"),
             width=0.4 if dim == "Resource Availability" else 0.7,
         )
         ax.set_title(dim)

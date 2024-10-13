@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 FONT_SIZES = {"small": 12, "medium": 16, "large": 18}
+COLORS = {"green": "#355145", "purple": "#d8a6e5", "orange": "#fe7759"}
 
 PLOT_PARAMS = {
     "font.family": "serif",
@@ -48,7 +49,13 @@ std_devs_sorted = [v[1] for v in sorted_data.values()]
 plt.figure(figsize=(7, 7))
 x_pos_sorted = np.arange(len(labels_sorted))
 
-ax1 = sns.barplot(x=x_pos_sorted, y=means_sorted, errorbar=None, color="gray", edgecolor="k")
+ax1 = sns.barplot(
+    x=x_pos_sorted,
+    y=means_sorted,
+    errorbar=None,
+    color=COLORS.get("orange"),
+    edgecolor=COLORS.get("green"),
+)
 plt.errorbar(x_pos_sorted, means_sorted, yerr=std_devs_sorted, fmt="none", c="black", capsize=5)
 
 # ax1.spines["top"].set_color("black")
