@@ -99,7 +99,8 @@ def main():
         output_file = output_dir / f"leaderboard-{model_type.replace(' ', '_')}.png"
         csv_output_file = output_dir / f"leaderboard-{model_type.replace(' ', '_')}.csv"
         data_to_cache = data.copy(deep=True)
-        data_to_cache["eng_Latn"] = model_type_df["eng_Latn"]
+        if "eng_Latn" in model_type_df.columns:
+            data_to_cache["eng_Latn"] = model_type_df["eng_Latn"]
         data_to_cache = data_to_cache.rename(columns={"Avg": "Avg_Multilingual"})
         data_to_cache.to_csv(csv_output_file)
         fig.savefig(output_file, dpi=120)
