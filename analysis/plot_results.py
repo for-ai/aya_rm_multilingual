@@ -66,6 +66,8 @@ LANG_STANDARDIZATION = {
     "zho": "zh",
 }
 
+COLORS = {"green": "#355145", "purple": "#d8a6e5", "orange": "#fe7759"}
+
 
 def get_args():
     # fmt: off
@@ -192,12 +194,19 @@ def plot_eng_drop_line(
 
     fig, ax = plt.subplots(figsize=figsize)
 
-    colors = ["red", "green", "blue"]
+    colors = [COLORS.get("green"), COLORS.get("purple"), COLORS.get("orange")]
     markers = ["o", "*", "D"]
-    for (label, group), marker in zip(data.groupby("Model_Type"), markers):
+    for (label, group), color in zip(data.groupby("Model_Type"), colors):
         mrewardbench_scores = group["Avg_Multilingual"]
         rewardbench_scores = group["eng_Latn"]
-        ax.scatter(rewardbench_scores, mrewardbench_scores, marker=marker, s=60, label=label, color="k")
+        ax.scatter(
+            rewardbench_scores,
+            mrewardbench_scores,
+            marker="o",
+            s=60,
+            label=label,
+            color=color,
+        )
 
     mrewardbench_scores = data["Avg_Multilingual"]
     rewardbench_scores = data["eng_Latn"]
