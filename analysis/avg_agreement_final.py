@@ -95,10 +95,11 @@ plt.grid(color="gray", axis="y", alpha=0.2)
 plt.ylim(0, 0.8)
 plt.gca().set_axisbelow(True)
 plt.legend(frameon=False)
+plt.xlabel("")
 
 plt.xticks(x_pos_sorted, labels_sorted, rotation=45, ha="right")
 plt.ylabel("Cohen's Kappa")
 plt.title("Average Inner-Model Agreement Across Languages", fontsize=18)
 
 plt.tight_layout()
-plt.savefig("plots/innermodel_agreement_green_oracle.pdf", bbox_inches="tight")
+plt.savefig("plots/innermodel_agreement_green_oracle_all.pdf", bbox_inches="tight")
