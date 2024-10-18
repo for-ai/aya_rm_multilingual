@@ -1,14 +1,15 @@
-import pandas as pd
-from pathlib import Path
-import numpy as np
-from statsmodels.stats.inter_rater import fleiss_kappa
-from sklearn.metrics import cohen_kappa_score
-import matplotlib.pyplot as plt
 from itertools import combinations
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.metrics import cohen_kappa_score
+from statsmodels.stats.inter_rater import fleiss_kappa
 
 # annotations = Path("data/hin_Deva_histogram.csv")
-annotations = Path("data/ind_Latn_histogram.csv")
-reference = Path("data/eng_Latn_histogram.csv")
+annotations = Path("plots/ind_Latn_histogram.csv")
+reference = Path("plots/eng_Latn_histogram.csv")
 
 annot_df = pd.read_csv(annotations).set_index("model").T
 ref_df = pd.read_csv(reference).set_index("model").T
