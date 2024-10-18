@@ -25,6 +25,31 @@ PLOT_PARAMS = {
     "text.usetex": False,
 }
 
+LANG_STANDARDIZATION = {
+    "arb": "ar",
+    "ces": "cs",
+    "deu": "de",
+    "ell": "el",
+    "fra": "fr",
+    "heb": "he",
+    "hin": "hi",
+    "ind": "id",
+    "ita": "it",
+    "jpn": "jp",
+    "kor": "kr",
+    "nld": "nl",
+    "pes": "fa",
+    "pol": "pl",
+    "por": "pt",
+    "ron": "ro",
+    "rus": "ru",
+    "spa": "es",
+    "tur": "tr",
+    "ukr": "uk",
+    "vie": "vi",
+    "zho": "zh",
+}
+
 plt.rcParams.update(PLOT_PARAMS)
 
 # annotations = Path("data/hin_Deva_histogram.csv")
@@ -51,12 +76,20 @@ sns.histplot(
     # edgecolor=None,
 )
 
-ax.set_xlabel("Cohen's Kappa")
+lang_code = LANG_STANDARDIZATION[lang.split("_")[0]]
+ax.set_xlabel(f"Cohen's Kappa (Language: {lang_code})")
 
 annot_df["model_annotations"] = [i for i in annot_df.values]
 annot_df["eng_reference"] = [i for i in ref_df.values]
 annotations = annot_df[["model_annotations", "eng_reference"]].reset_index().rename(columns={"index": "instance_id"})
 df = df.merge(annotations, how="left", on="instance_id")
+
+ax.axvline(x=0, color=COLORS.get("green"), linestyle="--", linewidth=1)
+ax.axvline(x=0.20, color=COLORS.get("green"), linestyle="--", linewidth=1)
+ax.axvline(x=0.40, color=COLORS.get("green"), linestyle="--", linewidth=1)
+ax.axvline(x=0.60, color=COLORS.get("green"), linestyle="--", linewidth=1)
+ax.axvline(x=0.80, color=COLORS.get("green"), linestyle="--", linewidth=1)
+ax.axvline(x=0.90, color=COLORS.get("green"), linestyle="--", linewidth=1)
 
 
 plt.grid(color="gray", axis="y", alpha=0.2)
