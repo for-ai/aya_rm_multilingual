@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from sklearn.metrics import cohen_kappa_score
+from datasets import load_dataset
 
 warnings.filterwarnings("ignore", category=RuntimeWarning, module="sklearn")
 
@@ -54,7 +55,7 @@ plt.rcParams.update(PLOT_PARAMS)
 
 # annotations = Path("data/hin_Deva_histogram.csv")
 lang = "hin_Deva"
-# lang = "ind_Latn"
+lang = "ind_Latn"
 annotations = Path(f"plots/{lang}_histogram.csv")
 reference = Path("plots/eng_Latn_histogram.csv")
 
@@ -84,12 +85,17 @@ annot_df["eng_reference"] = [i for i in ref_df.values]
 annotations = annot_df[["model_annotations", "eng_reference"]].reset_index().rename(columns={"index": "instance_id"})
 df = df.merge(annotations, how="left", on="instance_id")
 
+sdf = load_dataset(
+    "aya-rm-multilingual/multilingual-reward-bench-gtranslate", "ind_Latn", split="filtered"
+).to_pandas()
+sdf = sdf[["prompt", "chosen", "rejected", "subset", "id"]].rename(columns={"id": "instance_id"})
+sdf["instance_id"] = sdf["instance_id"].apply(lambda x: str(x))
+combi = df.merge(sdf, on="instance_id").sort_values(by="cohen", ascending=False).reset_index(drop=True)
+combi.to_csv("to_check.csv", index=False)
+
+
 ax.axvline(x=0, color=COLORS.get("green"), linestyle="--", linewidth=1)
-ax.axvline(x=0.20, color=COLORS.get("green"), linestyle="--", linewidth=1)
-ax.axvline(x=0.40, color=COLORS.get("green"), linestyle="--", linewidth=1)
 ax.axvline(x=0.60, color=COLORS.get("green"), linestyle="--", linewidth=1)
-ax.axvline(x=0.80, color=COLORS.get("green"), linestyle="--", linewidth=1)
-ax.axvline(x=0.90, color=COLORS.get("green"), linestyle="--", linewidth=1)
 
 
 plt.grid(color="gray", axis="y", alpha=0.2)
