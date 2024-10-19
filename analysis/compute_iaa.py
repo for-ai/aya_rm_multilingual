@@ -132,9 +132,9 @@ combi["count"] = 1
 fig, axs = plt.subplots(
     2,
     1,
-    figsize=(8, 4),
+    figsize=(8, 6),
     sharex=True,
-    gridspec_kw={"height_ratios": [4, 2]},
+    gridspec_kw={"height_ratios": [5, 2]},
 )
 sns.histplot(
     df["cohen"],
