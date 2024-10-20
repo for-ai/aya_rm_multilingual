@@ -235,7 +235,8 @@ def plot_eng_drop_line(
     ax.legend(frameon=False, handletextpad=0.2, fontsize=12)
 
     if top_n:
-        model_names = [MODEL_STANDARDIZATION[model] for model in data.index]
+        # model_names = [MODEL_STANDARDIZATION[model] for model in data.index]
+        model_names = [model for model in data.index]
         texts = [
             ax.text(
                 rewardbench_scores[idx],
