@@ -57,4 +57,4 @@ make style
 
 ## Team Members
 
-The team is composed of Srishti Gureja ([@srishti-git1110](https://github.com/srishti-git1110)), Shayekh Bin Islam, ([@ShayekhBinIslam](https://github.com/ShayekhBinIslam)), Rishabh Maheshwary ([@RishabhMaheshwary](https://github.com/RishabhMaheshwary)), Drishti Sushma ([@DrishtiShrrrma](https://github.com/DrishtiShrrrma)), Gusti Winata ([@sanggusti](https://github.com/sanggusti)), and Lj Miranda ([@ljvmiranda921](https://github.com/ljvmiranda921)).
+The team is composed of Srishti Gureja ([@srishti-git1110](https://github.com/srishti-git1110)), Shayekh Bin Islam, ([@ShayekhBinIslam](https://github.com/ShayekhBinIslam)), Rishabh Maheshwary ([@RishabhMaheshwary](https://github.com/RishabhMaheshwary)), Drishti Sharma ([@DrishtiShrrrma](https://github.com/DrishtiShrrrma)), Gusti Winata ([@sanggusti](https://github.com/sanggusti)), and Lj Miranda ([@ljvmiranda921](https://github.com/ljvmiranda921)).
