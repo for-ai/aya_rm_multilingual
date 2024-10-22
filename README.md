@@ -11,7 +11,7 @@ This project is part of [Cohere for AI's Expedition Aya 2024](https://sites.goog
 |
 <b><a href="https://github.com/for-ai/aya_rm_multilingual/blob/main/docs.md">📚 Documentation</a></b>
 |
-<b>📄 Paper (coming soon!)</b>
+<b><a href="https://arxiv.org/abs/2410.15522">📄Paper</a></b>
 </p>
 
 ## News
