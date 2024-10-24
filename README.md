@@ -1,8 +1,8 @@
-# Expedition Aya: Reward Model Multilingual
+# M-RewardBench: Evaluating Reward Models in Multilingual Settings
 
-In this project, we evaluate reward models on their multilingual capabilities.
+This repository contains the source code for M-RewardBench, a benchmark and toolkit for evaluating reward models in multilingual settings.
 We translated [RewardBench](https://huggingface.co/datasets/allenai/reward-bench) into 23 diverse languages and evaluated several open-source and multilingual LLMs on their chat, safety, and reasoning capabilities.
-This project is part of [Cohere for AI's Expedition Aya 2024](https://sites.google.com/cohere.com/expedition-aya/home), a 6-week open build challenge.
+This project was part of [Cohere for AI's Expedition Aya 2024](https://sites.google.com/cohere.com/expedition-aya/home), a 6-week open build challenge.
 
 <p align="center">
 <b><a href="https://huggingface.co/datasets/aya-rm-multilingual/multilingual-reward-bench">🤗 Dataset</a></b>
@@ -16,6 +16,8 @@ This project is part of [Cohere for AI's Expedition Aya 2024](https://sites.goog
 
 ## News
 
+- [2024-10-28] We've published our research, M-RewardBench: Evaluating Reward Models in Multilingual Settings, as an arXiv [**preprint!**](https://arxiv.org/abs/2410.15522)
+- [2024-10-20] Added a **Translation** sub-category to evaluate RM preferences on translation tasks (de<->en, zh<->en). We also improved the translation quality of the benchmark by using the Google Translate API and performing manual filtering and verification.
 - [2024-08-28] We won **Silver Prize** in Expedition Aya 2024! We're also releasing the v1 of the multilingual RewardBench on [HuggingFace](https://huggingface.co/datasets/aya-rm-multilingual/multilingual-reward-bench).
 
 ## Setup and installation
