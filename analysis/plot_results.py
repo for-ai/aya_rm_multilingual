@@ -193,7 +193,7 @@ def plot_eng_drop_line(
     from scipy.stats import pearsonr, spearmanr
 
     df = pd.read_csv(input_path)
-    df = df[["Model", "Model_Type", "Family", "eng_Latn", "Avg_Multilingual"]]
+    df = df[["Model", "Model_Type", "eng_Latn", "Avg_Multilingual"]]
     df = df.sort_values(by="Avg_Multilingual", ascending=False).reset_index(drop=True)
     data = df.set_index("Model").dropna()
     data[data.select_dtypes(include="number").columns] = data.select_dtypes(include="number") * 100
