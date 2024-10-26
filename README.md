@@ -60,3 +60,14 @@ make style
 ## Team Members
 
 The team is composed of Srishti Gureja ([@srishti-git1110](https://github.com/srishti-git1110)), Shayekh Bin Islam, ([@ShayekhBinIslam](https://github.com/ShayekhBinIslam)), Rishabh Maheshwary ([@RishabhMaheshwary](https://github.com/RishabhMaheshwary)), Drishti Sharma ([@DrishtiShrrrma](https://github.com/DrishtiShrrrma)), Gusti Winata ([@sanggusti](https://github.com/sanggusti)), and Lj Miranda ([@ljvmiranda921](https://github.com/ljvmiranda921)).
+
+## Citation
+
+```
+@article{gureja2024m,
+  title={M-RewardBench: Evaluating Reward Models in Multilingual Settings},
+  author={Gureja, Srishti and Miranda, Lester James V and Islam, Shayekh Bin and Maheshwary, Rishabh and Sharma, Drishti and Winata, Gusti and Lambert, Nathan and Ruder, Sebastian and Hooker, Sara and Fadaee, Marzieh},
+  journal={arXiv preprint arXiv:2410.15522},
+  year={2024}
+}
+```
