@@ -163,7 +163,7 @@ sns.histplot(
 )
 
 lang_code = LANG_STANDARDIZATION[lang.split("_")[0]]
-axs[1].set_xlabel(f"Cohen's Kappa (Language: {lang_code})")
+axs[1].set_xlabel("Cohen's Kappa (Language: Indonesian)")
 axs[1].set_ylabel("Percentage")
 
 # annot_df["model_annotations"] = [i for i in annot_df.values]
