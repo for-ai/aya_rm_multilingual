@@ -5,7 +5,7 @@ We translated [RewardBench](https://huggingface.co/datasets/allenai/reward-bench
 This project was part of [Cohere for AI's Expedition Aya 2024](https://sites.google.com/cohere.com/expedition-aya/home), a 6-week open build challenge.
 
 <p align="center">
-<b><a href="https://huggingface.co/datasets/aya-rm-multilingual/multilingual-reward-bench">🤗 Dataset</a></b>
+<b><a href="https://huggingface.co/datasets/C4AI-Community/multilingual-reward-bench">🤗 Dataset</a></b>
 |
 <b><a href="https://docs.google.com/presentation/d/1nEWUGw8qaHUa-FroNyFYLInRJ2yAKgQBIK5n5cGX9sA/edit?usp=sharing">💬 Presentation</a></b>
 |
