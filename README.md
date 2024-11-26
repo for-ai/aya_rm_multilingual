@@ -1,3 +1,6 @@
+![GbsXin-bIAAvoXn](https://github.com/user-attachments/assets/87026983-e072-41e9-b407-e0963afa8c3e)
+
+
 # M-RewardBench: Evaluating Reward Models in Multilingual Settings
 
 This repository contains the source code for M-RewardBench, a benchmark and toolkit for evaluating reward models in multilingual settings.
