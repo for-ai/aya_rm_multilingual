@@ -20,7 +20,6 @@ Updated to accommodate custom preference datasets
 import argparse
 import json
 import logging
-import os
 import sys
 from pathlib import Path
 
@@ -29,7 +28,6 @@ import torch
 import transformers
 from accelerate import Accelerator
 from accelerate.logging import get_logger
-from datasets import load_dataset
 from rewardbench import DPO_MODEL_CONFIG, REWARD_MODEL_CONFIG
 from rewardbench import check_tokenizer_chat_template, load_eval_dataset
 from rewardbench.constants import EXAMPLE_COUNTS, SUBSET_MAPPING
@@ -423,7 +421,7 @@ def main():
 
         with output_path.open("w") as f:
             for chosen, rejected in zip(scores_chosen, scores_rejected):
-                f.write(json.dumps({"chosen": scores_chosen, "rejected": scores_rejected}) + "\n")
+                f.write(json.dumps({"chosen": chosen, "rejected": rejected}) + "\n")
 
 
 if __name__ == "__main__":
