@@ -1,0 +1,3 @@
+[submodule "rewardbench"]
+	path = rewardbench
+	url = https://github.com/allenai/reward-bench.git
