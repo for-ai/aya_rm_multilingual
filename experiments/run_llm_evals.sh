@@ -71,6 +71,7 @@ for lang_code in "${!languages[@]}"; do
     --split "filtered" \
     --output_dir "$OUTDIR" \
     --include_languages "${languages[$lang_code]}" "English" \
+    --attn_implementation "flash_attention_2" \
     --trust_remote_code \
     --force_local
 done
