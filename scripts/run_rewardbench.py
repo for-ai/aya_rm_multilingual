@@ -398,7 +398,7 @@ def main():
     results_grouped = {}
     present_subsets = np.unique(subsets)
     for subset in present_subsets:
-        subset_dataset = out_dataset.filter(lambda example: example["subset"] == subset)
+        subset_dataset = out_dataset[out_dataset["subsets"] == subset]
         num_correct = sum(subset_dataset["results"])
         num_total = len(subset_dataset["results"])
         print(f"{subset}: {num_correct}/{num_total} ({num_correct/num_total})")
